@@ -1,0 +1,12 @@
+paragraphs=200 tables=10 shapes=6 chars=22869
+citations: 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40
+refs 1-40 present: True
+media:
+  word/media/image3.png 319556
+  word/media/image2.png 282323
+  word/media/image1.png 4478950
+  word/media/image4.png 252176
+  word/media/image5.png 539642
+  word/media/image6.png 391640
+  word/media/image7.png 326385
+  word/media/image8.png 858997

@@ -1,0 +1,56 @@
+{
+  "完整(基线)": {
+    "overall_auprc": 0.6006,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.1895,
+      "FREQ_BURST": 0.0982,
+      "PROGRESS_LAG": 0.2784,
+      "YEAREND_CONC": 0.1592,
+      "HISTORICAL_SHIFT": 0.0259,
+      "ENTITY_AGGREGATION": 0.1942
+    },
+    "event_recall": 0.156
+  },
+  "缺失10%": {
+    "overall_auprc": 0.6026,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.1902,
+      "FREQ_BURST": 0.0983,
+      "PROGRESS_LAG": 0.2793,
+      "YEAREND_CONC": 0.1596,
+      "HISTORICAL_SHIFT": 0.0261,
+      "ENTITY_AGGREGATION": 0.1944
+    },
+    "event_recall": 0.156
+  },
+  "缺失30%": {
+    "overall_auprc": 0.6014,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.1898,
+      "FREQ_BURST": 0.0989,
+      "PROGRESS_LAG": 0.2786,
+      "YEAREND_CONC": 0.1593,
+      "HISTORICAL_SHIFT": 0.0259,
+      "ENTITY_AGGREGATION": 0.1944
+    },
+    "event_recall": 0.1552
+  },
+  "删边20%": {
+    "overall_auprc": 0.5998,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.1911,
+      "FREQ_BURST": 0.0926,
+      "PROGRESS_LAG": 0.2758,
+      "YEAREND_CONC": 0.1588,
+      "HISTORICAL_SHIFT": 0.0258,
+      "ENTITY_AGGREGATION": 0.1939
+    },
+    "event_recall": 0.1673
+  },
+  "冷启动(hist=0)": {
+    "overall_auprc": 0.3803,
+    "n_cold": 147,
+    "n_warm": 23318,
+    "warm_auprc": 0.602
+  }
+}

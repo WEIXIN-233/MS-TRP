@@ -1,0 +1,19 @@
+﻿model,data_seed,observation_grid,interval_label_source,aggregation_rule,threshold_dependent,n_valid,vus_pr,metric_status
+fixed_rules,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.436223,completed
+robust_stats,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.360758,completed
+isolation_forest,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.416504,completed
+lof,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.249461,completed
+residual,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.413139,completed
+graph,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.390271,completed
+random_uniform,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.143599,completed
+constant_score,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,0,,not_applicable
+shared_payee_count,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.153576,completed
+shared_account_concentration,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,8,0.168041,completed
+ecod,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.332447,completed
+copod,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.359546,completed
+mcd,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.32709,completed
+cblof,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.214325,completed
+simple_ppr,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.414027,completed
+concat_if,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.405262,completed
+MS-TRP,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.540258,completed
+temporal_only,2026,natural_month,点级异常标签按月投影,样本量加权 AUPRC 均值,False,12,0.508406,completed

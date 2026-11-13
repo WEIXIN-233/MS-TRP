@@ -1,0 +1,3 @@
+[submodule "baselines_2025/FoMo-0D"]
+	path = baselines_2025/FoMo-0D
+	url = https://github.com/A-Chicharito-S/FoMo-0D.git

@@ -1,0 +1,65 @@
+# ---------- Python / 环境 ----------
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ---------- 仿真数据（可由生成器重建，约 850 MB） ----------
+data_fixed/
+data_fixed_b/
+
+# ---------- 实验中间产物 ----------
+logs/
+result_raw/protocol_v1_legacy/
+result_raw/protocol_v2_causal/
+result_raw/seed/
+result_raw/seed10/
+result_raw/seed20/
+result_raw/seed30/
+result_raw/feature_table.csv
+result_raw/propagation_edges.csv
+result_raw/business_edges.csv
+result_raw/temporal_score.csv
+result_raw/evidence.jsonl
+result_raw/baseline_table.csv
+result_raw/injection_params.csv
+
+# ---------- 基线：预训练权重与预处理缓存 ----------
+baselines_2025/prep.npz
+baselines_2025/prep_payments.pkl
+baselines_2025/prep_events.pkl
+baselines_2025/FoMo-0D/ckpt.zip
+baselines_2025/FoMo-0D/.git/
+
+# ---------- PDF 一律不入库（论文与配图 PDF 仅保留在本地） ----------
+*.pdf
+
+# ---------- 论文目录：稿件二进制与可重绘位图 ----------
+*.docx
+*.doc
+wordwenjian1/*.png
+wordwenjian1/redraw/*.png
+wordwenjian1/latex/*.abs
+wordwenjian1/latex/*.bak*
+wordwenjian1/latex/figures/*.png
+
+# ---------- LaTeX 编译中间件 ----------
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+
+# ---------- 其他 ----------
+.DS_Store
+Thumbs.db
+*.tmp

@@ -1,0 +1,44 @@
+{
+  "model": {
+    "rho": 0.6,
+    "tau": 1.0,
+    "gamma": 30.0,
+    "quantile": 0.01,
+    "alpha_fpr": 0.01,
+    "rhythm_sat": 0.35,
+    "conc_sat": 0.5,
+    "w_conc": 0.65,
+    "w_rhythm": 0.7,
+    "ppr_max_iter": 50,
+    "ppr_stop_tol": 1e-06
+  },
+  "baselines": {
+    "isolation_forest": {
+      "impl": "sklearn.ensemble.IsolationForest",
+      "n_estimators": 200,
+      "max_samples": "auto",
+      "contamination": "auto"
+    },
+    "lof_novelty": {
+      "impl": "sklearn.neighbors.LocalOutlierFactor",
+      "n_neighbors": 20,
+      "novelty": true,
+      "contamination": "auto"
+    },
+    "ecod": {
+      "impl": "pyod.models.ecod.ECOD"
+    },
+    "copod": {
+      "impl": "pyod.models.copod.COPOD"
+    },
+    "cblof": {
+      "impl": "pyod.models.cblof.CBLOF",
+      "n_clusters": 8
+    },
+    "mcd": {
+      "impl": "pyod.models.mcd.MCD / sklearn.covariance.MinCovDet",
+      "support_fraction": 0.7
+    }
+  },
+  "fit_split": "仅训练/验证期拟合，测试仅 transform"
+}

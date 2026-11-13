@@ -1,0 +1,77 @@
+[84] Normal :: 为看 2025 年公开方法在相同输入表示与评价口径下的表现，本文额外实测三种近期方法。DRL[38] 在潜空间用数据无关的正交基分解正常样本表示并加表示分离约束，隐空间 128 维、5 个原型、训练 200 轮。FoMo
+[85] Heading 2 :: 5.3 评价指标与阈值口径
+[86] Normal :: 支付级主指标采用平均精确率形式的Payment-AUPRC，反映全部排序的综合表现[19]。冻结阈值后报告精确率P、召回率R及每千笔正常支付误报数FAR/1000。其中，MS-TRP及其消融变体在其部署用的分层收缩阈值下
+[87] Normal :: 15
+[88] Normal :: 另报告recall@FAR5和recall@FAR10，分别描述5%和10%误报率下的召回。该指标属于测试排序的预算诊断，不等同于部署阈值下的实际召回，不用于回调冻结阈值。并列分数会限制可实现的工作点，因此需保留实际告警
+[89] Normal :: 事件级评价先按主要对象与时间相邻性聚合告警，合并间隔固定为7天，再与真实事件执行对象一致且时间交叠的一对一最大匹配。一个真实事件最多计为一个命中。对已检出的真实事件，首警延迟定义为其起点到首个告警的平均天数，仅刻画已检出
+[90] Heading 1 :: 6 实验结果与分析
+[91] Heading 2 :: 6.1 支付级综合性能
+[92] Normal :: 表4报告全部21种方法或参照的支付级与事件级结果，表5报告相同方法的误报预算诊断。Payment-AUPRC按降序排列，图2突出主要方法的排序比较。所有列的最优数值按指标方向加粗，随机与常数参照不参与最优值比较。
+[93] Normal :: 
+[94] Normal :: 表4 测试集支付级与事件级性能
+[95] Normal :: 注：↑表示数值越大越优，↓表示数值越小越优。加粗表示排除随机与常数参照后该列最优值。Temporal-only关闭关系分支并保留节奏与季节通道，属于组件变体而非独立外部方法。ConstantScore的精确率不作有效比较
+[96] Normal :: 
+[97] Normal :: 
+[98] Normal :: MS-TRP 的 Payment-AUPRC 为 0.6001，高于 Temporal-only 的 0.5703、Isolation Forest 的 0.4143、Concat-IF 的 0.4008，在全部 21 
+[99] Normal :: 三种 2025 年方法都没有超过 MS-TRP。TCCM 的 Payment-AUPRC 为 0.2880、列第 13，冻结阈值下召回 1.0000、FAR/1000 达 1000.00，等于全量告警，阈值类指标作不了有
+[100] Normal :: 
+[101] Normal :: 图2 主要方法的Payment-AUPRC比较
+[102] Normal :: 冻结阈值下，MS-TRP 精确率 0.9252、召回率 0.1667、FAR/1000 2.18。这个工作点告警负担低，只覆盖少量阳性支付。Shared-Account Concentration 的 FAR/1000 
+[103] Normal :: 表5 固定误报率下的支付召回
+[104] Normal :: 误报率放到 10% 时，MS-TRP 召回 0.6139，高于 Temporal-only 的 0.5443、COPOD 的 0.4542、ECOD 的 0.4113；收紧到 5% 时召回 0.4738，仍高于各对照。优
+[105] Heading 2 :: 6.2 六类异常事件检出
+[106] Normal :: 表6 六类异常的事件召回
+[107] Normal :: 金额突增的事件量大，召回 0.1505。频次突增与年末集中召回较高，各为 0.7000、0.4444；实体聚集召回 0.4186；进度滞后与历史偏移偏低，各为 0.3333、0.2500。年末集中只有 18 个测试事件，
+[108] Normal :: 按表6的召回与测试事件数回推，六类分别命中约 182、14、7、8、4、18 个，合计 233 个命中、1,327 个真实事件，微平均召回约 0.1756。这是分层事件告警口径，不与表4目标误报阈值下的 Event-F1
+[109] Heading 2 :: 6.3 模块消融
+[110] Normal :: 表7 组件变体与消融结果
+[111] Normal :: 注：本表所有变体在分层收缩阈值口径下报告FAR/1000。表4中MS-TRP采用分层收缩阈值，其余基线（含Temporal-only）采用目标误报率(0.01)阈值。故Temporal-only的FAR/1000在表4为
+[112] Normal :: 把四尺度特征换成单尺度后，AUPRC 从 0.6001 掉到 0.4268，绝对下降 0.1733，幅度超过其余组件变体，说明多尺度表示是当前合成场景排序性能的主贡献。完整模型 0.6001 高于 Temporal-on
+[113] Normal :: 实体聚集事件上，Temporal-only 召回 0.0930。只加账户一致性规则升到 0.6279，只加 PPR 扩散仍是 0.0930，规则与 PPR 联合落到 0.4186。可见规则对实体聚集召回的贡献远强于 PP
+[114] Normal :: 阶段边权固定后 AUPRC 0.6006，与完整模型差 0.0005；门控换成固定等权融合后 0.6008，略高于完整模型。阶段因子与动态门控带来的变化都在噪声范围内，又缺重复运行区间，收益谈不上稳定。
+[115] Normal :: 表7中的规则与PPR组合用于观察信息通道的行为，其结果不等同于从完整模型逐一删除单个模块。不同变体的最终告警可能同时受到分数范围、硬规则及阈值并列处理影响。对单一机制的解释应优先结合Temporal-only、单尺度、固
+[116] Heading 2 :: 6.4 冷启动与历史充分度
+[117] Normal :: 表8 不同历史跨度下的Payment-AUPRC
+[118] Normal :: 注：最优值按同一历史跨度内的方法比较加粗。三个分组样本量依次为384、2,427和20,654，阳性支付数依次为121、593和2,549。
+[119] Normal :: 
+[120] Normal :: 图3 历史跨度分组的Payment-AUPRC
+[121] Normal :: 在31至180天的历史组中，MS-TRP的AUPRC为0.6601，高于表8中其他方法。历史超过180天时，MS-TRP为0.6177，也高于Self/Peer的0.5655。在不超过30天的冷启动组中，MS-TRP为0
+[122] Normal :: AUPRC取决于排序及组内阳性构成，不能用冻结阈值保守解释长历史组的AUPRC下降。三个历史组的样本量相差较大，且缺少各组不确定性区间，故主要进行组内方法比较，不将不同历史组的AUPRC直接解释为时间跨度的因果效应。
+[123] Heading 2 :: 6.5 缺失与删边扰动
+[124] Normal :: 表9 输入扰动下的检测结果
+[125] Normal :: 字段缺失与删边扰动下，AUPRC相对基线的绝对变化不超过0.0025。删除20%图边后事件召回略升、AUPRC略降。字段缺失30%时AUPRC略升。现有结果表明所测扰动条件下总体排序变化较小，但不证明任意缺失机制或更大删
+[126] Normal :: 该现象也与时序分支占优的消融结果一致。当图信号本身对最终排序的增量较弱时，删边可能不会引起显著退化。由于当前结果缺少多种缺失机制、多种删边强度及重复扰动的分布，不对鲁棒性作统计显著或广泛泛化声明。
+[127] Heading 2 :: 6.6 分层收缩阈值下的季度误报
+[128] Normal :: 表10 分层收缩阈值下的季度误报
+[129] Normal :: 
+[130] Normal :: 图4 测试季度误报及验证集经验参照
+[131] Normal :: 表10的正常支付总数为20,202，与测试集23,465条支付对应的阳性占比一致。四个季度的FAR/1000介于0.86至3.57。第二季度与第三季度低于验证集经验值1.42，第一季度为1.75，第四季度为3.57，首尾
+[132] Normal :: 该结果提供了既定阈值下的经验证据，个别季度误报低于验证集经验值并不等于数学意义上的误报保证，也不能单独证明阈值未被调整。阈值冻结应通过配置、版本和运行记录核验。本节FAR/1000与验证集经验值1.42均以分层收缩阈值计
+[133] Heading 2 :: 6.7 事件与区间评价的补充分析
+[134] Normal :: 目标误报阈值下，MS-TRP 的 Event-F1 为 0.1269，低于 Concat-IF 的 0.2181 与 Isolation Forest 的 0.2208。较高的支付精确率没有换来较高的事件覆盖，低告警工作
+[135] Normal :: 月度分箱下 MS-TRP 的 VUS-PR 为 0.5403，同网格随机评分参照 0.1430。这说明在本文的区间评价设置里，模型含有的信息超过随机评分；但不能由随机参照反推它优于那些没列区间指标的基线。
+[136] Heading 1 :: 7 讨论与局限性
+[137] Heading 2 :: 7.1 排序能力与告警能力的边界
+[138] Normal :: MS-TRP 在 10% 误报率下召回较高，5% 误报率下仍占优，冻结阈值下召回更低。应用时要按可接受的复核量去选并验证工作点，不能只凭精确率判断整体有效。
+[139] Normal :: Temporal-only 关掉关系分支、保留节奏与季节通道，FAR/1000 为 8.46，告警与事件指标都能正常算。它与完整模型只差一个关系分支，两者排序和告警可直接比。这个差异体现的是分数与阈值接口的数值性质，不能
+[140] Heading 2 :: 7.2 关系风险与结构种子的限制
+[141] Normal :: 图传播依赖时序种子。共享收款人或账户没有独立异常种子时，传播只能把相邻支付的风险重新分配，不能只靠共享结构生成风险。合法公共供应商和异常资金聚集可能同样高连接，单纯抬高共享边权会连正常交易的风险一起抬。后续应当构造独立结
+[142] Normal :: 眼下源头实体自身的时序种子为零，桥接支付与受影响支付的标识也没形成可区分分组，所以现有诊断验不了异常源头定位。本文把关系证据限定为可回查的关联路径，不声称能靠 PPR 识别真实资金风险源头。
+[143] Heading 2 :: 7.3 合成数据与复现限制
+[144] Normal :: 三组数据种子下与生成器 A 对照，A 的 AUPRC 均值 0.5312（区间 0.4666 至 0.5786），B 为 0.4926（区间 0.4640 至 0.5343），跨机制跌幅 7.26%（按未取整均值算）。B
+[145] Normal :: 鲁棒性结果缺重复扰动区间，运行时间与内存开销也没做统一实测对照。窗口权重、门控温度、关系衰减、完整变体开关，都得随实现配置一起归档，才支持精确复算。后续应补独立数据源、完整配置、逐样本预测与校准诊断，对图分支和规则通道做
+[146] Heading 1 :: 8 结论
+[147] Normal :: 本文给出面向预算执行异常检测的 MS-TRP 模型，把多尺度稳健时序参照、异构图关系传播、可靠度门控与分层阈值校准串成一条可追溯的风险分析流程。结果表明，支付级排序、阈值告警、事件检出必须分开评价；在当前场景里，排序性能
+[148] Normal :: 关系相关组件的整体 AUPRC 增益有限，实体聚集事件的召回增量主要靠账户一致性规则，PPR 扩散增益有限。三个历史跨度组内模型表现都较好，事件覆盖与严格误报预算下仍有不足。未来围绕独立结构种子、跨生成机制验证、真实业务
+[149] Heading 1 :: 参考文献
+[150] Normal :: [1] CHANDOLA V, BANERJEE A, KUMAR V. Anomaly detection: A survey[J]. ACM Computing Surveys, 2009, 41, no. 3: A
+[151] Normal :: [2] LIU F T, TING K M, ZHOU Z H. Isolation Forest[C]//Proceedings of the 2008 IEEE International Conference on
+[152] Normal :: [3] BREUNIG M M, KRIEGEL H P, NG R T, et al. LOF: Identifying density-based local outliers[C]//Proceedings of 
+[153] Normal :: [4] ROUSSEEUW P J, VAN DRIESSEN K. A fast algorithm for the minimum covariance determinant estimator[J]. Techn
+[154] Normal :: [5] HE Z, XU X, DENG S. Discovering cluster-based local outliers[J]. Pattern Recognition Letters, 2003, 24, no
+[155] Normal :: [6] SCHÖLKOPF B, PLATT J C, SHAWE-TAYLOR J, et al. Estimating the support of a high-dimensional distribution[J
+[156] Normal :: [7] CHEN T, GUESTRIN C. XGBoost: A scalable tree boosting system[C]//Proceedings of the 22nd ACM SIGKDD Intern
+[157] Normal :: [8] SAKURADA M, YAIRI T. Anomaly detection using autoencoders with nonlinear dimensionality reduction[C]//Proc
+[158] Normal :: [9] AN J, CHO S. Variational autoencoder based anomaly detection using reconstruction probability[J]. Special 
+[159] Normal :: [10] ZONG B, SONG Q, MIN M R, et al. Deep autoencoding Gaussian mixture model for unsupervised anomaly detecti
+[160] Normal :: [11] RUFF L, VANDERMEULEN R, GOERNITZ N, et al. Deep one-class classification[C]//Proceedings of the 35th Inte

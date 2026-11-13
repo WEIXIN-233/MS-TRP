@@ -1,0 +1,589 @@
+\documentclass[twocolumn,11pt]{ctexart}
+
+\usepackage[top=2.5cm,bottom=2.5cm,left=1.8cm,right=1.8cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{placeins}
+\captionsetup{font=small,labelfont=bf,labelsep=space}
+
+\graphicspath{{figures/}}
+\renewcommand{\figurename}{图}
+\renewcommand{\tablename}{表}
+\newcommand{\keywords}[1]{\par\noindent\textbf{关键词：}#1}
+\newcommand{\upcite}[1]{\textsuperscript{\cite{#1}}}
+\usepackage[hidelinks,unicode]{hyperref}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries 面向预算执行异常监控的时间可追溯多尺度风险建模与关系证据分析}\\[0.6em]
+{\large\bfseries MS-TRP：多尺度时序风险建模与关系证据分析}
+\end{center}
+
+\medskip
+
+\begin{abstract}
+预算执行的支付数据里，多尺度时序变化、异构实体联系与信息延迟同时存在，字段可读性也参差不齐。靠单一阈值规则，既难覆盖各类异常，也难把复核工作量压到可控范围。本文提出多尺度时序与关系风险传播模型 MS-TRP。它在七日、三十日、当季、当年四个尺度上度量金额、频次与执行进度，参照系由个体历史与同类群体共同建立；再用九类业务实体搭成阶段感知异构图，使已出现风险沿关系扩散。时序分数与关系分数经可靠度门控融合，阈值在验证集冻结，最终落到特征、历史、规则、关系四类审计证据上。数据含88,351条支付记录，2023—2024年训练、2025年验证、2026年测试。测试集上 MS-TRP 的 Payment-AUPRC 为 0.6006，高于 Isolation Forest 的 0.4143 与 Concat-IF 的 0.4008；冻结阈值下精确率 0.9447、召回率 0.1624、FAR/1000 为 1.53，属于低召回、高精度的工作点。把误报预算放宽到 10\% 后，召回升到 0.6169。消融表明多尺度组合是排序性能的主要来源；阶段边权与动态门控的差异落在单次运行的波动量级内，尚不足以支持其独立价值。关系相关组件对整体 AUPRC 增益有限：实体聚集事件在冻结阈值下的召回几乎全部来自账户归属硬规则（17/43），而该规则与共享账户异常的注入方式直接对应；共享收款人子类仅覆盖 1/26。风险排序、阈值告警、事件检出要分开评价。本文结论只对所构造的合成数据成立。换一套独立生成机制后模型仍有效，只是增益收窄，仍有待真实业务数据检验。
+\keywords{预算执行；异常检测；多尺度时序；时间可追溯；关系证据分析；误报控制}
+\end{abstract}
+\section{引言}
+预算执行监控应当从不断产生的支付申请、预算指标、支付凭证以及收款账户中发现需要复核的异常情况。异常可以表现为单笔金额的偏差，也可以反映短期付款频率的增加、执行进度的持续拖延或者跨项目共享交易实体。金额较大的采购、正常年末结算以及合法公共供应商同样会表现出类似的特征，所以，仅仅统计偏离就认为存在违规事实是不恰当的。检测模型的任务是进行风险排序并提供证据线索，从而合理分配后续人工核查所用的有限资源。
+
+异常检测一般是根据数据对正常行为假设的偏离程度来识别异常\cite{ref1}。在预算执行过程中，正常行为具有明显的时序和业务条件的差异。同一项目在启动期和年末的付款节奏不同，同一金额在不同类别项目中具有不同的意义。另外，业务字段的发生时间与系统可读时间可能有差别。如果在历史评分中采用事后补录信息，离线结果就会过高估计实际所具有的检测能力。
+
+目前的通用表格检测器能够反映特征空间中的离群情况，但是其作用主要取决于输入是否反映出业务时序以及实体关系。Isolation Forest通过随机划分隔离样本\cite{ref2}，LOF通过局部密度差异来表示离群程度\cite{ref3}。这些方法不能自动提供多时间尺度的参考，也不能区分业务边方向以及风险传播方向。另外，关系扩散能够把具有共同收款人或者账户的多个项目联系起来，但是共享关系本身并不一定表明存在异常。
+
+与通用表格异常检测相比，预算执行监控具有四方面的业务差别。其一为阶段异质性：同一项目在启动期主要包含小额勘察以及招标费用，建设与验收期出现大额工程款，年末再发生集中结算，不同阶段的金额和频次基线不一致。其二为合法共享关系：集中采购平台、公共财政银行账户以及长期供应商都会同时参与许多项目，共享收款人或者账户本身不能作为异常依据。其三为信息延迟可读：支付申请、凭证以及业务字段的实际发生时间与系统可读时间可能存在差异，事后补录如果进入历史评分会高估实际可用的检测能力。其四为复核预算：人工复核人数有限，模型输出应当能够按风险排序并且在规定的误报预算范围内进行复核，而不仅仅提供一个阈值告警。通用表格检测器一般不同时考虑这四方面因素，因此需要为预算执行设计专门的建模与评价方法。
+
+针对这些问题，本文提出 MS-TRP，考察评分时点约束下的多尺度稳健偏离、关系传播与可靠度融合。工作分三块。第一块把多尺度稳健时序参照、关系传播、可靠度门控与分层阈值整合为一条可回放的风险分析流程，见图1。第二块用模块消融看各组件的实际收益：多尺度表示撑起整体排序性能的大头，关系相关组件对整体 AUPRC 的增益有限，账户一致性规则对实体聚集异常的召回却很关键。这一块还引入带权重的节奏与季节通道，替代对节奏噪声的直接硬阈值截断：硬阈值会把正常支付的节奏噪声灌进最终分，稀释图分支的增益；新通道取加权最大值且输出有界，不再产生这类假阳性。第三块把支付级排序、冻结阈值告警与事件级检出分开定评价协议，统一口径后确认适用范围，见表4至表6。
+
+\section{相关工作}
+\subsection{表格异常检测}
+隔离、密度、稳健协方差与聚类几类方法，各自建立在不同的异常假设上。Isolation Forest 依据随机划分下的隔离路径长度判定离群\cite{ref2}，LOF 看的是邻域密度相对差异\cite{ref3}。最小协方差行列式估计用稳健的位置与散布刻画多变量偏离\cite{ref4}，CBLOF 则结合聚类结构描述局部离群程度\cite{ref5}。单类支持向量机在估计高维分布支撑域后识别离群点\cite{ref6}；XGBoost 这类梯度提升树在监督设定下是强基线，代价是依赖标记异常\cite{ref7}。深度方法分重构与单分类两条线：自动编码器以重构误差度量偏离\cite{ref8}，变分自动编码器把重构概率换作异常依据\cite{ref9}，DAGMM 联合优化自动编码器与高斯混合模型\cite{ref10}，Deep SVDD 在特征空间学一个最小包围超球\cite{ref11}，系统综述见文献\cite{ref12}。统一特征接口下，这些方法适合做对照，但某一特征工程组合带来的收益不能全算到检测器头上。
+
+ECOD 靠各维经验分布估计尾部概率\cite{ref13}，COPOD 用经验 Copula 构造多变量离群分数\cite{ref14}，两者都以较少的超参数处理表格数据。PyOD 统一多种检测器的软件接口\cite{ref15}，scikit-learn 提供 Isolation Forest、LOF 等经典实现\cite{ref16}。本文区分原始白名单输入与 MS-TRP 派生特征输入：主对照用原始输入，Concat-IF 用来观察派生表示叠加隔离检测后的效果。更大规模的系统比较可看 ADBench，它统一 57 种检测器与 30 个数据集给出可复现对照\cite{ref17}；Goldstein 等对多变量无监督方法的比较则指出，不同算法的适用条件并不相同\cite{ref18}。
+
+\subsection{可靠时序异常评测}
+类别不平衡时，精确率—召回率分析更能反映阳性预测里真正的异常比例\cite{ref19}。时间序列异常还牵扯持续区间与事件匹配，单点命中替代不了完整事件检出；VUS 系列指标把评价扩展到阈值无关，用以处理区间偏移等问题\cite{ref20}。检测模型方面，深度时序方法同样沿重构与预测两条线走：OmniAnomaly 用随机递归网络学正常模式的稳健表示并按重构概率打分\cite{ref21}，USAD 靠对抗训练的自编码器隔离异常\cite{ref22}，TranAD 用 Transformer 双阶段结构稳定训练\cite{ref23}，Anomaly Transformer 借关联差异识别区间异常\cite{ref24}。本文以 Payment-AUPRC 作支付级主指标，再补上误报预算约束下的召回与事件级指标，避免只靠一个工作点论优劣。评测基准方面，NAB 面向流式实时检测\cite{ref25}，SPOT 基于极值理论自动设单变量流阈值\cite{ref26}；TSB-AD 整理了 40 个数据集与 1070 条人工校验序列，点出点调整等评测误差并推荐 VUS-PR 等指标\cite{ref27}；TAB 则为多变量与单变量时序搭统一自动化评测管线，覆盖机器学习、深度学习与 LLM 方法\cite{ref28}。
+
+\subsection{动态异构图与关系传播}
+PageRank 用图连接结构搭起迭代评分机制\cite{ref29}，图神经网络把这一想法推广到可学习表示：图卷积网络以谱域近似聚合邻域信息\cite{ref30}，图注意力网络用自注意力给邻居分配差异化权重\cite{ref31}，APPNP 把个性化 PageRank 引入消息传播\cite{ref32}。放到异常检测里，可以把已有的异常分数当作个性化种子，让风险沿允许的关系传播。这一步本质是重分配已经存在的风险信息，而不是在零种子下凭空造出异常证据。因此传播是否有效，取决于种子质量、边的业务语义，以及正常共享关系与异常共享关系能被区分的程度。图异常检测方面，FRAUDAR 通过发现局部稠密子图对抗伪装下的欺诈\cite{ref33}，综述见文献\cite{ref34}与\cite{ref35}。
+
+预算业务具有单位、项目、指标、凭证、收款人及账户等多类型实体。业务边记录资金链条的实际方向，风险追踪却可能需要沿共享实体返回其他项目。本文分别维护业务边与传播边，保留原始时间和方向，同时为允许的消息交换建立双向边，避免混淆交易事实与分析用途。
+
+\subsection{财政与审计数字化}
+在公共预算数据上，已有工作利用机器学习识别预算计划数据中的离群情形，说明该领域存在统计异常检测的实际需求\cite{ref36}。该研究以预算编制与计划数据为对象，与本文对预算支付凭证执行过程的风险识别属于不同任务层次。本文的评分对象限定为已形成且可读的支付凭证，不将预算计划离群识别外推为支付合规验证。审计数字化还要求模型输出可复核的证据，事后解释方法如SHAP以Shapley值度量各特征对预测的贡献，为异常告警提供可解释接口\cite{ref37}。
+
+\section{问题定义与数据组织}
+\subsection{评分对象与可读性约束}
+设每条支付记录关联项目、预算指标、支付凭证和交易对手等实体。对已形成且可读凭证的支付申请，以支付申请日期\texttt{apply\_date}的当日日终为评分时点构造支付级样本。评分只使用该时点之前已可读的字段与图边：时序统计严格使用\texttt{apply\_date}早于当前支付的记录，图传播使用\texttt{apply\_date}不晚于当前评分的节点与边。更正、退款与预警等审计日志不进入特征与图，防止使用未来修正值回填历史。记$t_{score}$为评分时点，$a_{max}$为评分所取字段与图边的最大可读时点，式(1)约束$a_{max}$$\le$$t_{score}$，即不使用评分时点之后才可读的信息。
+
+\begin{equation}
+a_{max} \le t_{score}
+\end{equation}
+对进度滞后，构造项目或指标在月末的快照样本。该任务不要求当月必须产生支付，因此能够表达整月零支付的执行状态。支付级排序与快照级进度评价分别组织样本，六类事件召回通过各自对象和时间区间进行匹配，不将两类任务的样本数直接相加。
+
+\subsection{实体与异常类型}
+数据包含九类图节点。预算指标在业务存储中进一步区分名称级与三级明细，因此业务表共有十类。数据规模见表1。异常生成同时设置合法大额采购、周期性付款、批准延期、正常年末结算、政策调整和合法公共供应商等对照，使异常不能仅凭单一金额或共享次数确定。
+
+\begin{table*}[t]
+\centering\small
+\caption{合成预算业务实体规模}
+\begin{tabular}{lclc}
+\toprule
+业务实体 & 数量 & 业务实体 & 数量 \\
+\midrule
+单位 & 119 & 收款人 & 1,609 \\
+项目 & 575 & 银行账户 & 3,242 \\
+指标名称级 & 2,288 & 支出分类 & 30 \\
+指标三级明细 & 5,690 & 采购品目 & 9 \\
+支付申请 & 88,351 & 支付凭证 & 52,335 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering\small
+\caption{异常模式及正常业务对照}
+\begin{tabular}{lll}
+\toprule
+异常类型 & 异常表现 & 正常对照 \\
+\midrule
+金额突增 & 局部支付金额偏离 & 合法大额采购 \\
+频次突增 & 短期付款次数增加 & 集中报销 \\
+进度滞后 & 累计执行落后计划 & 批准延期 \\
+年末集中 & 非典型年末集中 & 正常年末结算 \\
+历史偏移 & 同阶段节奏改变 & 正常政策调整 \\
+实体聚集 & 跨项目共享实体 & 合法公共供应商 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+生成数据共包含4,683个异常事件。事件标签与支付标签表示不同对象。一个事件可能关联多条支付，一个支付也可能涉及多个异常条件。本文分别报告支付级与事件级结果，事件数量不作为支付阳性率的分子。训练、验证和测试边界之间不允许同一注入事件跨集合延伸。
+
+\section{MS-TRP模型}
+模型由四个模块组成：多尺度时序建模、阶段感知异构图风险传播、可靠度门控、以及分层阈值与证据输出。多尺度分支生成可解释的时序风险，再由异构图检索关联风险，最后根据两路信息的可靠度形成融合分数。整体架构图如图1所示。
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/fig1-framework.pdf}
+\caption{MS-TRP总体框架}
+\end{figure*}
+\subsection{多尺度时序特征与稳健参照}
+模型在七日、三十日、当季截至当前、当年截至当前四个窗口上，分别算金额总和、付款次数、平均付款间隔、单笔占比、累计执行率与同阶段历史偏离。两个固定窗按滑动窗口累计笔数，当季窗则从自然季度首日起算，期望笔数取该指标历史日付款速率乘以本季已过天数，因此它捕捉的是整个季度内的持续偏快，而非仅近端突增。每条特征记录保留窗口起止、实际观测数和缺失原因；缺失不直接判为低风险，而是触发可追溯的参照回退。
+
+个体参照Self凭借目标项目的合法历史数据估计中位数和稳定尺度。群体参照Peer参照单位类型、项目类型、支出分类与执行阶段形成条件组，样本不足时依次回退至更粗层级。计算Peer统计量时排除目标项目自身的待评分记录。设历史充分度与尺度稳定性分别为h、v，二者均映射至零至一。融合系数与参照中心定义为
+
+\begin{equation}
+q = \frac{h + v}{2}, \quad \lambda = \mathrm{clip}[0.1 + 0.8q,\ 0.1,\ 0.9]
+\end{equation}
+\begin{equation}
+\mu = \lambda \mu_{self} + [1 - \lambda]\mu_{peer}
+\end{equation}
+无个体历史时令$\lambda$为零（作为式(2)收缩区间的特殊覆盖），完全使用可用Peer参照。稳健尺度采用相同融合思路，并设置由训练阶段确定的尺度下限。金额突增使用上侧偏离，执行滞后使用下侧偏离，节奏变化使用双侧偏离。上侧标准化偏离可写为
+
+\begin{equation}
+z^{+} = \frac{\max[0,\ x - \mu]}{\max[\sigma,\ \sigma_{min}] + \varepsilon}
+\end{equation}
+其中，$\varepsilon$用于数值稳定，$\sigma$min为尺度下限。对特征维度与时间窗口的偏离进行有界映射，得到时序风险分数。权重与映射参数在训练或验证阶段确定，测试阶段保持不变。
+
+\begin{equation}
+s_{ts} = \sum \omega_{q,w} \tanh[\kappa_{q,w} z_{q,w}]
+\end{equation}
+除四尺度偏离外，模型还计算两类季节相关信号。历史节奏衡量明细累计执行进度相对历史同期的偏离。年末集中衡量单位在十二月支付占比相对往年同期的偏离。二者按权重取最大值，得到节奏与季节通道，权重在验证集冻结。该通道再与图分支的融合分数取最大值，进入最终分数。与硬阈值截断不同，该加权最大值有界，不会把正常支付的节奏噪声灌入最终分。有界映射也会让部分正常样本取得与高风险样本相同的上界分数，这一并列现象需与排序指标分开分析。
+
+\subsection{阶段感知异构图风险传播}
+在评分时点构建仅包含已可读实体和关系的异构图。业务边保留申请到收款人、收款人到账户等实际记录方向；传播边则依据允许的业务关系提供双向消息方向，使一个项目的已有风险能够经共享实体传递至其他项目。关系构造不使用注入事件标签。
+
+九类图节点为项目、预算指标、支付申请、支付凭证、收款人、采购品目、账户、单位与支出分类。业务边按实际记录方向连接相邻实体：单位拥有项目，项目分配预算指标，指标由支付申请使用；申请生成凭证，支付给收款人并经账户划转，收款人归入账户；申请与指标按经济分类归属支出分类、按采购类别归属采购品目。传播边在业务关系上补充反向消息边，使一个项目的已有风险可沿共享收款人、共享账户或共享指标向其他项目传递；业务边方向与消息边方向相互独立，具体边白名单由配置表固定，不随测试标签调整。
+
+对关系类型 r，边的相对强度由执行阶段因子、时间衰减和同质性三者共同定。交易事件边与永久业务边各用不同的衰减设置；阶段归属落在边关联的项目或指标上，而不是把收款人当成具有唯一预算执行阶段的实体。
+
+\begin{equation}
+c_{ij,r} = b_{r}[\mathrm{stage}] \exp[-\beta_{r}\Delta t]\ h_{ij}
+\end{equation}
+把各类关系的边权汇成加权邻接矩阵，再取对称归一化：
+
+\begin{equation}
+W = D^{-1/2}AD^{-1/2}, \quad A_{ij} = \sum_{r}\zeta_{r}u_{ij,r}
+\end{equation}
+其中 $D$ 为加权度对角矩阵。基础版对所有关系类型取 $\zeta_r = 1$，即不做类型级权重混合；归一化在整个多元图上一并完成，因此 $W$ 不是行随机矩阵，不解释为概率转移矩阵。其谱半径上界由加权度控制，配合回跳系数即可保证迭代收敛。以支付节点时序风险作为初始种子，中间业务实体初始风险为零，采用带回跳项的稀疏迭代传播\upcite{ref29}。
+
+\begin{equation}
+s_{g,k+1} = \rho s_{ts} + [1 - \rho]\hat{W}s_{g,k}
+\end{equation}
+回跳系数 $\rho$ 在 0.2、0.4、0.6、0.8 四档里按验证集挑，本实验取 0.6，停止容差 10$^{-6}$，迭代上限 50 轮。孤立节点保留自环，每轮都查数值有限性与分数范围。种子全零时关系分支不会产生非零风险，图传播因此不能替代独立结构异常种子的构造。
+
+以一个五节点示例说明传播行为：设项目A、项目B经共享收款人C连接，D、E为A、B各自的账户，A为唯一时序风险源，种子u=(1,0,0,0,0)。取回跳系数$\rho$=0.6，度归一化传播算子为$\hat{W}$。第一轮z(1)=$\rho$·u+(1-$\rho$)·$\hat{W}$·u=0.6·u+0.4·$\hat{W}$·u，将A的部分风险沿A$\rightarrow$C边扩散至共享收款人；第二轮z(2)=$\rho$·u+(1-$\rho$)·$\hat{W}$·z(1)把C上的风险按边权分配至B。若u=0，则每轮z(k)=0，传播不产生任何非零风险。该示例表明图传播只能重分配已有种子，其迭代收敛由谱半径条件$\varrho$((1-$\rho$)$\hat{W}$)<1保证，孤立节点以自环维持分数不消失。
+
+\subsection{可靠度门控融合}
+时序可靠度（记 $r_{ts}$）由有效历史、特征覆盖与稳健尺度稳定性组成；关系可靠度（记 $r_g$）由有效邻居、关系类型覆盖与拓扑稳定性组成。各分量的标准化映射在训练阶段固定，不碰测试标签。可靠度刻画的是输入信息够不够、是否一致，不是风险大小，所以高风险对象也可以同时是高可靠度。账户一致性规则是硬规则：比对支付记录的收款人 \texttt{payee\_id} 与其关联账户的登记归属收款人，不一致输出 $s_{mismatch}=1$，一致为 0，账户缺归属时视作一致。$s_{mismatch}$ 经式(11)并入核心分数，取 1 时 $s_{core}$ 直接顶到 1，形成对门控融合的硬覆盖。这条规则属于结构异常信号而非分数传播：实体聚集里的共享账户子类，靠注入把不同收款人的支付强制归并到同一账户，非归属收款人的支付就出现账户归属不一致而被直接命中。共享收款人子类不产生归属冲突，只能靠实体频次突增与评分阈值判定，第6.3节给出它在冻结阈值下仅覆盖 1/26 个事件。这个子类与规则的对应关系同时意味着，规则对共享账户子类的召回主要反映注入方式与规则定义的一致性，不能直接外推为一般关系异常的识别能力。
+
+\begin{equation}
+g_{ts} = \frac{\exp[r_{ts}/T]}{\exp[r_{ts}/T] + \exp[r_{g}/T]}
+\end{equation}
+\begin{equation}
+s_{gate} = g_{ts}s_{ts} + (1 - g_{ts})s_{g}
+\end{equation}
+\begin{equation}
+s_{core} = 1 - (1 - s_{gate})(1 - s_{mismatch})
+\end{equation}
+\begin{equation}
+s_{rhythm\_ch} = \max(0.70\ s_{rhythm},\ 0.65\ s_{conc})
+\end{equation}
+\begin{equation}
+s_{final} = \max(s_{core},\ s_{rhythm\_ch})
+\end{equation}
+温度T调节门控对可靠度差异的敏感程度。实验设置固定等权融合变体，用于区分动态可靠度门控与简单分数平均的作用。模型输出是用于比较的风险分数，不将其未经校准地解释为异常发生概率。
+
+\subsection{分层双阈值与证据输出}
+按照单位类型、项目类别和执行阶段形成阈值组。对样本不足的组，将经验阈值向全局阈值收缩，以减少小样本分位点波动。Warning与HighRisk阈值分别校准，并保持前者不高于后者。
+
+\begin{equation}
+\theta'_{c} = \frac{n_c}{n_c + \gamma}\theta_c + \frac{\gamma}{n_c + \gamma}\theta_{global}
+\end{equation}
+组样本数记为 $n_c$，收缩强度 $\gamma$ 取 30。在验证集上还校准目标正常样本误报率 0.01 的阈值，与分层告警阈值分开保存版本，测试期一律不再调整。告警严格采用分数大于阈值的规则，并列分数保留实际结果。
+
+每条告警附四类证据：特征证据记录窗口值、参照中心与偏离；历史证据记录 Self、Peer 及融合系数；规则证据记录命中规则、版本和例外；关系证据记录关联实体、传播路径与边权。图版本、参数版本、阈值版本合起来是可回放标识。消融里规则通道与传播分支的贡献分开报；关系路径只用来解释风险关联，不当作违规因果关系的证明。
+
+用一个匿名例子看证据结构：某项目在季度末向同一收款人连续付大额工程款，同时触发金额突增与频次突增。特征证据记录 30 日窗口金额、Peer 参照中心与上侧偏离；历史证据记录 Self 充分度、尺度稳定性及二者确定的融合系数；规则证据记录命中规则编号、版本和例外；关系证据记录该项目经共享收款人连到其他项目的传播路径与边权。这些字段拼成一条可复算路径，复核人可以沿特征、历史、规则、关系四层去追触发原因。本文只描述这个证据接口，不据此声称缩短了人工核验时间。
+
+\section{实验设置}
+\subsection{数据划分与实施约束}
+训练、验证、测试按自然时间切分，规模见表3。训练期含 2023 年历史记录，用来提供个体与群体参照。缺失填补、标准化、协方差估计、聚类拟合只碰训练数据，验证与测试只做变换。参数、阈值和事件合并间隔都在验证期定死；主结果是数据种子 2026 的单次运行，没有从多次测试里挑最优。
+
+全部冻结参数如下，供复算核对：回跳系数 $\rho=0.6$（候选 0.2/0.4/0.6/0.8）、阈值收缩强度 $\gamma=30$、高分组分位点 0.01、目标误报率 0.01、门控温度 $T=1.0$、事件合并间隔 7 天、迭代容差 $10^{-6}$ 与上限 50 轮；边权中静态关系的时间衰减为 0，支付类关系取 $\beta=0.001$/天，阶段因子 Early/Middle/Late 分别取 0.7/1.0/1.5，同质性 $h=1.0$；时序侧偏离饱和值 3.0、节奏饱和 0.35、年末集中饱和 0.5、Peer 条件组最少样本 5。按当前数据重建后图含 148,558 个节点与 430,922 条边。单次全量重算涵盖特征、逐评分日 as-of 传播、阈值校准与评价，在本机实测 164 秒（另一次同配置运行 191 秒），峰值内存 0.85 GB，平均每次传播迭代 24.8 轮。日终增量打分对新增一个业务日重建当日可见边的转移矩阵并跑一次 PPR，单日中位 40 毫秒、95 分位 71 毫秒、最大 112 毫秒（不含数据入库与特征重算）。
+
+\begin{table*}[t]
+\centering\small
+\caption{时间划分与支付记录数量}
+\begin{tabular}{llc}
+\toprule
+集合 & 时间范围 & 支付数 \\
+\midrule
+训练集 & 2023—2024年 & 43,191 \\
+验证集 & 2025年 & 21,695 \\
+测试集 & 2026年 & 23,465 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+测试支付里的阳性占比是 0.1391。总体生成记录与支付级评价样本会受凭证可读性和任务资格条件影响，所以本文按各评价集合的明确样本数解释结果，不把事件数与支付数混用。进度滞后按月末快照评价，事件级统计覆盖六类异常；支付级主指标不负责整月无支付那类进度异常的评价。
+
+\subsection{对比方法}
+对比方法分固定规则、稳健统计、表格离群检测与关系结构四类。Isolation Forest\upcite{ref2} 用 200 棵树；LOF\upcite{ref3} 取 20 个邻居并开新颖性检测模式；MCD\upcite{ref4} 支持比例 0.7；CBLOF\upcite{ref5} 设 8 个聚类；ECOD\upcite{ref13} 与 COPOD\upcite{ref14} 沿用各自的分布评分机制。常规算法统一走训练、验证、测试接口。
+
+Robust MAD、Forecast Residual、Fixed Rule 是本文自建的稳健偏离、预测残差与业务固定规则对照，其中 Fixed Rule 覆盖金额、频次与进度规则，阈值在验证集冻结。Shared-Payee Count 按评分前 30 日收款人关联的其他项目数打分，Shared-Account Concentration 按同期账户被不同收款人使用的集中度打分。Graph-only 只吃图结构输入，Simple PPR 用均匀边权，两者与完整模型保持相同拓扑与回跳预算。Temporal-only 关掉关系分支、保留节奏与季节通道，是组件变体而非独立外部方法。
+
+Concat-IF 把派生表示拼接后送进 Isolation Forest，是本文构造的组合基线，引用指向其基础检测算法\upcite{ref2}，并不表示组合本身出自原论文。随机均匀评分在同样本上取 U(0,1) 的固定种子分数，常数评分恒为 0.5，二者只作无技能参照。结果表里，文献型方法附原始文献，本文自建的规则与组件变体不附不相干文献。
+
+为看 2025 年公开方法在相同输入表示与评价口径下的表现，本文额外实测三种近期方法。DRL\upcite{ref38} 在潜空间用数据无关的正交基分解正常样本表示并加表示分离约束，隐空间 128 维、5 个原型、训练 200 轮。FoMo-0D\upcite{ref39} 是面向表格离群检测的零样本基础模型，以 PFN 式上下文推理直接给离群概率，不在本文数据上更新参数，推理上下文取 4,999 条训练集正常样本。TCCM\upcite{ref40} 学时间条件收缩向量场，把正常样本单步前向收缩到原点，以残差范数当异常分数，训练 100 轮、学习率 0.001、批大小 64。三者都只用训练集正常样本拟合或构造上下文，评价口径与其他基线一致，阈值同样在验证集冻结。
+
+\subsection{评价指标与阈值口径}
+支付级主指标采用平均精确率形式的Payment-AUPRC，反映全部排序的综合表现\upcite{ref19}。冻结阈值后报告精确率P、召回率R及每千笔正常支付误报数FAR/1000。其中，MS-TRP及其消融变体在其部署用的分层收缩阈值下报告点指标，各基线在各自目标误报率(0.01)阈值下报告点指标。后者以正常支付数为分母，定义为
+
+\begin{equation}
+\mathrm{FAR}/1000 = 1000 \times \frac{FP}{FP + TN}
+\end{equation}
+另报告recall@FAR5和recall@FAR10，分别描述5\%和10\%误报率下的召回。该指标属于测试排序的预算诊断，不等同于部署阈值下的实际召回，不用于回调冻结阈值。并列分数会限制可实现的工作点，因此需保留实际告警比较规则。
+
+检测器比较与阈值策略比较分开组织。前者允许每个方法在验证集上按各自规则选工作点，回答“方法整体是否可用”；后者固定同一组分数、只更换阈值，回答“阈值策略本身带来多少差别”。两套数字不合并解释。第6.3节给出一个具体例子：同一组分数在 0.6838 与 0.8432 两个冻结阈值下，实体聚集事件命中相差 10 个。
+
+事件级评价先按主要对象与时间相邻性聚合告警，合并间隔固定为7天，再与真实事件执行对象一致且时间交叠的一对一最大匹配。一个真实事件最多计为一个命中。对已检出的真实事件，首警延迟定义为其起点到首个告警的平均天数，仅刻画已检出部分的时间响应，不替代对全部事件的覆盖评价。各异常类型分别计算事件召回，避免支付成员数量较大的事件主导评价。区间级指标采用自然月分箱的VUS-PR，并配合同一网格下的随机参照\upcite{ref20}。由于缺少完整逐样本输出，本文不报告未计算的置信区间或显著性检验。
+
+\section{实验结果与分析}
+\subsection{支付级综合性能}
+表4报告全部21种方法或参照的支付级与事件级结果，表5报告相同方法的误报预算诊断。Payment-AUPRC按降序排列，图2给出主要方法的排序概览、PR曲线与低误报召回曲线。所有列的最优数值按指标方向加粗，随机与常数参照不参与最优值比较。
+
+\begin{table*}[t]
+\centering\small
+\caption{测试集支付级与事件级性能}
+\begin{tabular}{lccccc}
+\toprule
+方法 & Payment-AUPRC $\uparrow$ & 精确率 $\uparrow$ & 召回率 $\uparrow$ & FAR/1000 $\downarrow$ & Event-F1 $\uparrow$ \\
+\midrule
+MS-TRP & \textbf{0.6006} & \textbf{0.9447} & 0.1624 & 1.53 & 0.1188 \\
+Temporal-only & 0.5734 & 0.8601 & \textbf{0.3203} & 8.42 & 0.1493 \\
+Isolation Forest\cite{ref2} & 0.4143 & 0.7532 & 0.2161 & 11.43 & \textbf{0.2208} \\
+Fixed Rule & 0.4042 & 0.7371 & 0.2363 & 13.61 & 0.2190 \\
+Concat-IF\cite{ref2} & 0.4008 & 0.7413 & 0.2142 & 12.08 & 0.2181 \\
+Forecast Residual & 0.3941 & 0.7492 & 0.2069 & 11.19 & 0.2180 \\
+COPOD\cite{ref14} & 0.3894 & 0.5251 & 0.0705 & 10.30 & 0.0549 \\
+Simple PPR\cite{ref29} & 0.3865 & 0.7512 & 0.1961 & 10.49 & 0.2182 \\
+Graph-only & 0.3683 & 0.7438 & 0.1842 & 10.25 & 0.2094 \\
+ECOD\cite{ref13} & 0.3676 & 0.5267 & 0.0665 & 9.65 & 0.0493 \\
+MCD\cite{ref4} & 0.3545 & 0.5711 & 0.0739 & 8.96 & 0.0406 \\
+Robust MAD & 0.3351 & 0.6894 & 0.1701 & 12.38 & 0.1984 \\
+TCCM\cite{ref40} & 0.2880 & 0.1391 & 1.0000 & 1000.00 & 0.0320 \\
+FoMo-0D\cite{ref39} & 0.2793 & 0.5045 & 0.0172 & 2.72 & 0.0624 \\
+DRL\cite{ref38} & 0.2700 & 0.1389 & 0.9225 & 923.97 & 0.0330 \\
+LOF\cite{ref3} & 0.2422 & 0.2525 & 0.0156 & 7.47 & 0.0448 \\
+CBLOF\cite{ref5} & 0.2136 & 0.1155 & 0.0107 & 13.27 & 0.0149 \\
+Shared-Payee Count & 0.1869 & 0.3003 & 0.0316 & 11.88 & 0.0420 \\
+Shared-Account Concentration & 0.1433 & 0.7222 & 0.0080 & \textbf{0.50} & 0.0289 \\
+RandomUniform & 0.1404 & 0.1639 & 0.0120 & 9.85 & 0.0271 \\
+ConstantScore & 0.1391 & — & 0.0000 & 0.00 & 0.0000 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+注：$\uparrow$表示数值越大越优，$\downarrow$表示数值越小越优。加粗表示排除随机与常数参照后该列最优值。Temporal-only关闭关系分支并保留节奏与季节通道，属于组件变体而非独立外部方法。ConstantScore的精确率不作有效比较。Concat-IF为本文构造的组合基线，文献\cite{ref2}对应其基础检测器。未标注参考文献的方法为本文自建。召回率为0的方法由阈值或参考口径导致，并不代表排序能力为零，Payment-AUPRC仍可做出比较。DRL、FoMo-0D与TCCM为仅在正常样本上拟合或构造上下文的单分类与零样本方法。这类方法在验证集上的正常样本分数接近零，冻结的目标误报率阈值极小；2026测试期正常样本分数整体上移，超过该极小阈值的比例远高于0.01，故DRL的FAR/1000达923.97、TCCM达1000.00，明显高于其余方法。TCCM的召回率1.0000为全量告警，其阈值类指标不宜与监督式排序方法直接比较，三者召回率与FAR均不参与最优值加粗。三者的Payment-AUPRC与召回@FAR不受阈值影响。
+
+MS-TRP 的 Payment-AUPRC 为 0.6006，高于 Temporal-only 的 0.5734、Isolation Forest 的 0.4143、Concat-IF 的 0.4008，在全部 21 种方法或参照里排第 1。相对 Fixed Rule 提高 0.1964。接上关系分支后支付级排序改善，实体聚集异常的召回也从 Temporal-only 的 0.0930 升到完整模型的 0.4186，增量主要来自账户一致性规则，PPR 扩散只带来少量整体增益。
+
+三种 2025 年方法都没有超过 MS-TRP。TCCM 的 Payment-AUPRC 为 0.2880、列第 13，冻结阈值下召回 1.0000、FAR/1000 达 1000.00，等于全量告警，阈值类指标作不了有效工作点。FoMo-0D 没在本文数据上训练，Payment-AUPRC 0.2793、Event-F1 0.0624，还是低于 MS-TRP 的 0.1188。DRL 的 Payment-AUPRC 0.2700、列第 15，落在 Simple PPR、Fixed Rule 等关系与规则基线之下，也低于 COPOD、ECOD、MCD 等多数 PyOD 表格方法，只高于 LOF 与 CBLOF；冻结阈值下 FAR/1000 923.97，告警负担很重。相同输入表示与评价口径下，2025 年的通用表格方法仍不及本文模型。
+
+为把表示贡献与检测机制贡献分开，表4中的四个表格检测器各跑两组严格同样本输入：一组只用评分时点可观测值与预定义历史窗口聚合的原始字段，另一组在原始字段上追加 MS-TRP 的派生字段（$z$ 偏离与 $s$ 分数，不含规则与图信号）。追加派生表示后，ECOD、COPOD、MCD 与 CBLOF 的 Payment-AUPRC 从 0.3676、0.3894、0.3545、0.2136 变为 0.4991、0.5238、0.4517、0.2136，分别提高 0.1315、0.1343、0.0972 与 0.0000；Concat-IF 在派生表示上为 0.4008。业务表示本身确实带来可观增益，但在同等表示下这四个简单检测器仍低于 MS-TRP 的 0.6006。该对照只覆盖四个检测器，派生字段集合也不等同完整模型输入，因此只能说明表示贡献可单独观察，不能据此精确量化图分支与规则通道各自的增益。
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/fig2_combined.pdf}
+\caption{主要方法的排序概览、PR曲线与低误报召回}
+\end{figure*}
+冻结阈值下，MS-TRP 精确率 0.9447、召回率 0.1624、FAR/1000 1.53。这个工作点告警负担低，只覆盖少量阳性支付。Shared-Account Concentration 的 FAR/1000 是 0.50，比 MS-TRP 还低，召回率却只有 0.0080。误报低本身不算检测优势，还需与检出覆盖一起衡量。
+
+\begin{table*}[t]
+\centering\small
+\caption{固定误报率下的支付召回（加粗为最优）}
+\begin{tabular}{lcc}
+\toprule
+方法 & 召回率@5\%误报率 $\uparrow$ & 召回率@10\%误报率 $\uparrow$ \\
+\midrule
+MS-TRP & \textbf{0.4680} & \textbf{0.6169} \\
+Temporal-only & 0.4615 & 0.5440 \\
+Isolation Forest\cite{ref2} & 0.3055 & 0.3748 \\
+Fixed Rule & 0.3301 & 0.3996 \\
+Concat-IF\cite{ref2} & 0.2997 & 0.3622 \\
+Forecast Residual & 0.3065 & 0.3690 \\
+COPOD\cite{ref14} & 0.2850 & 0.4542 \\
+Simple PPR\cite{ref29} & 0.2960 & 0.3653 \\
+Graph-only & 0.2715 & 0.3340 \\
+ECOD\cite{ref13} & 0.2660 & 0.4113 \\
+MCD\cite{ref4} & 0.2712 & 0.3917 \\
+Robust MAD & 0.2636 & 0.3368 \\
+TCCM\cite{ref40} & 0.1964 & 0.2418 \\
+FoMo-0D\cite{ref39} & 0.1588 & 0.2645 \\
+DRL\cite{ref38} & 0.1909 & 0.2219 \\
+LOF\cite{ref3} & 0.1192 & 0.2538 \\
+CBLOF\cite{ref5} & 0.1109 & 0.2541 \\
+Shared-Payee Count & 0.0815 & 0.1376 \\
+Shared-Account Concentration & 0.0080 & 0.0080 \\
+RandomUniform & 0.0484 & 0.0981 \\
+ConstantScore & 0.0000 & 0.0000 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+误报率放到 10\% 时，MS-TRP 召回 0.6169，高于 Temporal-only 的 0.5440、COPOD 的 0.4542、ECOD 的 0.4113；收紧到 5\% 时召回 0.4680，仍高于各对照。优势随预算变化，不能用 10\% 这个单点去推断整个低误报区间都占优。三种 2025 年方法在 5\% 与 10\% 误报率下的召回都低于 MS-TRP。
+
+\subsection{六类异常事件检出}
+\begin{table*}[t]
+\centering\small
+\caption{六类异常的事件召回}
+\begin{tabular}{lcc}
+\toprule
+异常类型 & 测试事件数 & 事件召回 $\uparrow$ \\
+\midrule
+金额突增 & 1,209 & 0.1299 \\
+频次突增 & 20 & 0.7500 \\
+进度滞后 & 21 & 0.3333 \\
+年末集中 & 18 & 0.3889 \\
+历史偏移 & 16 & 0.1875 \\
+实体聚集 & 43 & 0.4186 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+金额突增的事件量大，召回 0.1299。频次突增与年末集中召回较高，各为 0.7500、0.3889；实体聚集召回 0.4186；进度滞后与历史偏移偏低，各为 0.3333、0.1875。年末集中只有 18 个测试事件，召回高不能说明它在更广数据上也稳占优势。
+
+按表6的召回与测试事件数回推，六类分别命中约 157、15、7、7、3、18 个，合计 207 个命中、1,327 个真实事件，微平均召回约 0.1560。这是分层事件告警口径，不与表4目标误报阈值下的 Event-F1 直接合并。六类事件数从 16 到 1,209 不等，宏平均事件召回为 0.3680，明显高于微平均 0.1560，说明总体数字由金额突增这类大样本类主导；分类型报告可以避免少数类的小幅波动被误读为整体能力变化。各类型只有单次运行的点估计，没有重复扰动或重采样区间，本文不对类间差异作显著性判断。支付排序质量、阈值选择、事件匹配粒度，一起决定最终的事件覆盖。
+
+\subsection{模块消融}
+\begin{table*}[t]
+\centering\small
+\caption{组件变体与消融结果（各列加粗为最优）}
+\begin{tabular}{lccc}
+\toprule
+变体 & AUPRC $\uparrow$ & FAR/1000 $\downarrow$ & 聚集召回 $\uparrow$ \\
+\midrule
+完整模型 & 0.6006 & 1.53 & 0.4186 \\
+Temporal-only & 0.5734 & 1.58 & 0.0930 \\
+时序与规则组合 & 0.5078 & 5.84 & \textbf{0.6279} \\
+时序与PPR组合 & 0.5944 & 1.83 & 0.0465 \\
+时序、规则与PPR组合 & 0.6005 & 1.78 & 0.3953 \\
+单尺度 & 0.4268 & \textbf{1.19} & 0.4186 \\
+固定边权 & 0.6011 & 1.49 & 0.4186 \\
+固定等权融合 & \textbf{0.6029} & 2.67 & 0.4419 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+注：本表所有变体在分层收缩阈值口径下报告FAR/1000。表4中MS-TRP采用分层收缩阈值，其余基线（含Temporal-only）采用目标误报率(0.01)阈值。故Temporal-only的FAR/1000在表4为8.42（目标误报率口径）、本表为1.58（分层收缩口径）；MS-TRP两表均为1.53（同用分层收缩）。两表Payment-AUPRC与阈值无关，可跨表比较。
+
+把多尺度特征换成单尺度后，AUPRC 从 0.6006 掉到 0.4268，绝对下降 0.1738，幅度超过其余组件变体，说明多尺度表示是当前合成场景排序性能的主贡献。完整模型 0.6006 高于 Temporal-only 的 0.5734，增量来自图分支。为了把窗口多样性和特征数量增加分开看，固定尺度信号数、只换频次窗口值做等维对照：金额尺度配 7日/30日频次窗口再加当季尺度得 0.6006，配 5日/60日加当季得 0.5932，配 90日/365日加当季得 0.5781，窗口选择本身带来 0.0074 增益（按未取整 AUPRC 算）。7日/30日窗口和注入的异常模式更对齐，增益有一部分来自窗口多样性，但幅度有限，不宜把等维对照当作强证据。当季尺度单因素的边际效应更小：去掉它，AUPRC 从 0.6006 变到 0.6001，排序几乎不变；它的作用主要在告警侧，完整模型冻结阈值下 FAR/1000 为 1.53，去掉当季后回到 2.18。
+
+实体聚集事件上，Temporal-only 召回 0.0930（4/43），只加账户一致性规则升到 0.6279（27/43），只加 PPR 扩散是 0.0465（2/43），规则与 PPR 联合落到 0.3953（17/43）。规则单独加入时 Payment-AUPRC 为 0.5078，比 Temporal-only 的 0.5734 低 0.0656，等于拿支付级排序换实体聚集覆盖。为定位规则与 PPR 联合后的回落，本文逐层核对规则命中、最终分数、冻结阈值、告警数、聚合事件与匹配命中。测试集上规则命中 24 笔支付，最终分数全部为 1.0；两个变体的冻结阈值分别为 0.6838 与 0.8432，24 笔在两种阈值下全部告警，规则命中没有被 PPR 抹掉。差别出在其余支付：+Rule 在 0.6838 阈值下有 273 个告警，+Rule+PPR 在 0.8432 阈值下有 658 个，但后者的额外告警没有覆盖前者在较低阈值下命中的共享收款人事件。固定 +Rule 的分数、只把阈值换成 0.8432，实体聚集命中由 27/43 降到 17/43；固定 +Rule+PPR 的分数、只把阈值换回 0.6838，命中升到 30/43。可见阈值重冻结本身就能造成 10 个事件的差别，PPR 在同一工作点上反而略增覆盖。
+
+按子类拆分更清楚。43 个实体聚集事件中，共享账户 17 个、共享收款人 26 个。规则命中覆盖全部 17 个共享账户事件，在三个变体与两种阈值下都不变；共享收款人在冻结阈值下分别只命中 10、0、1 个，把误报预算放宽到 10\% 后升到 17、16、17 个。冻结阈值下的实体聚集召回因此几乎全部来自账户归属硬规则：17/43 由规则命中，完整模型多出的 1 个来自实体频次通道。共享收款人的结构异常在本文场景里要在更宽的工作点才可检出，不能支撑复杂关系传播具有独立价值的说法。
+
+阶段边权固定后 AUPRC 0.6011，与完整模型 0.6006 差 0.0005；门控换成固定等权融合后 0.6029，比完整模型高 0.0023。两项差异都远小于单次运行的波动量级，且没有重复运行区间。本文据此把阶段感知边权与动态门控定位为实现细节，不作为已验证的创新点；可复现的收益主要来自多尺度时序参照与可审计的证据接口。各变体的排序性能与实体聚集召回对照见图3。
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_ablation.pdf}
+\caption{组件变体的排序性能与实体聚集召回}
+\end{figure*}
+
+表7中的规则与PPR组合用于观察信息通道的行为，其结果不等同于从完整模型逐一删除单个模块。不同变体的最终告警可能同时受到分数范围、硬规则及阈值并列处理影响。对单一机制的解释应优先结合Temporal-only、单尺度、固定边权与固定融合等明确干预。表7各变体FAR/1000的阈值口径与表4的差异见表注。
+
+\subsection{冷启动与历史充分度}
+\begin{table*}[t]
+\centering\small
+\caption{不同历史跨度下的Payment-AUPRC}
+\begin{tabular}{lcccc}
+\toprule
+历史跨度 & Self & Peer & Self/Peer & MS-TRP \\
+\midrule
+$\le$30天 & 0.4070 & 0.4819 & 0.4503 & \textbf{0.4887} \\
+31—180天 & 0.5473 & 0.5288 & 0.5676 & \textbf{0.6757} \\
+>180天 & 0.5635 & 0.4344 & 0.5697 & \textbf{0.6154} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+注：最优值按同一历史跨度内的方法比较加粗。三个分组样本量依次为384、2,427和20,654，阳性支付数依次为121、593和2,549。
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=0.75\linewidth]{figures/fig3_cold_start2.pdf}
+\caption{历史跨度分组的Payment-AUPRC}
+\end{figure*}
+在31至180天的历史组中，MS-TRP的AUPRC为0.6757，高于表8中其他方法。历史超过180天时，MS-TRP为0.6154，也高于Self/Peer的0.5697。在不超过30天的冷启动组中，MS-TRP为0.4887，略高于Peer-only的0.4819。该结果与历史充分时个体参照更具辨识力的机制相容。冷启动组中MS-TRP与纯群体参照接近，提示极低历史充分度下个体参照增益有限，但不能据此排除分组标签构成的影响。
+
+AUPRC取决于排序及组内阳性构成，不能用冻结阈值保守解释长历史组的AUPRC下降。三个历史组的样本量相差较大，且缺少各组不确定性区间，故主要进行组内方法比较，不将不同历史组的AUPRC直接解释为时间跨度的因果效应。
+
+\subsection{缺失与删边扰动}
+\begin{table*}[t]
+\centering\small
+\caption{输入扰动下的检测结果}
+\begin{tabular}{lcc}
+\toprule
+扰动条件 & AUPRC $\uparrow$ & 事件召回 $\uparrow$ \\
+\midrule
+无扰动 & 0.6006 & 0.1560 \\
+字段缺失10\% & 0.6026 & 0.1560 \\
+字段缺失30\% & 0.6014 & 0.1552 \\
+删除图边20\% & 0.5998 & 0.1673 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+字段缺失与删边扰动下，AUPRC相对基线的绝对变化不超过0.0025。删除20\%图边后事件召回略升、AUPRC略降。字段缺失30\%时AUPRC略升。现有结果表明所测扰动条件下总体排序变化较小，但不证明任意缺失机制或更大删边比例下均稳定。
+
+该现象也与时序分支占优的消融结果一致。当图信号本身对最终排序的增量较弱时，删边可能不会引起显著退化。由于当前结果缺少多种缺失机制、多种删边强度及重复扰动的分布，不对鲁棒性作统计显著或广泛泛化声明。
+
+\subsection{分层收缩阈值下的季度误报}
+\begin{table*}[t]
+\centering\small
+\caption{分层收缩阈值下的季度误报}
+\begin{tabular}{lcc}
+\toprule
+季度 & 正常支付数 & FAR/1000 $\downarrow$ \\
+\midrule
+2026Q1 & 2,284 & 0.88 \\
+2026Q2 & 3,488 & 0.57 \\
+2026Q3 & 5,456 & 0.73 \\
+2026Q4 & 8,974 & 2.56 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=0.66\linewidth]{figures/image4.pdf}
+\caption{测试季度误报及验证集经验参照}
+\end{figure*}
+表10的正常支付总数为20,202，与测试集23,465条支付对应的阳性占比一致。四个季度的FAR/1000介于0.57至2.56。第一至第三季度分别为0.88、0.57、0.73，均低于验证集经验值1.36，第四季度为2.56，高于该经验值。正常样本量在季度间变化较大，单季度误报数量较少，季度差异不宜被过度解释为风险机制变化。
+
+该结果提供了既定阈值下的经验证据，个别季度误报低于验证集经验值并不等于数学意义上的误报保证，也不能单独证明阈值未被调整。阈值冻结应通过配置、版本和运行记录核验。本节FAR/1000与验证集经验值1.36均以分层收缩阈值计算；目标正常样本误报率0.01的阈值仅用于表4与表5中各基线的点指标，两者不可直接比较。阶段分组在现有汇总中仅出现Early，未覆盖多个可比较阶段，因此不据此宣称跨阶段校准有效。
+
+\FloatBarrier
+
+\subsection{事件与区间评价的补充分析}
+目标误报阈值下，MS-TRP 的 Event-F1 为 0.1188，低于 Concat-IF 的 0.2181 与 Isolation Forest 的 0.2208。较高的支付精确率没有换来较高的事件覆盖，低告警工作点仍会漏掉大量事件。首警延迟汇总为 12.9 天，但它只对已检出事件有意义，替代不了对全部事件的覆盖评价。
+
+月度分箱下 MS-TRP 的 VUS-PR 为 0.5403，同网格随机评分参照 0.1430。这说明在本文的区间评价设置里，模型含有的信息超过随机评分；但不能由随机参照反推它优于那些没列区间指标的基线。
+
+\subsection{典型事件的证据链}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.94\linewidth]{figures/fig_case_multiscale.pdf}
+\caption{频次突增事件的业务量、时序通道响应与告警过程}
+\label{fig:case}
+\end{figure*}
+
+前面的结果都是集合层面的。这里用测试期一个频次突增事件看证据链如何对齐。明细 DT00004556 在 2026-10-01 至 10-03 三天内对同一收款人 PY000473 支付 9 笔、合计 352.2 万元；此前 12 个月该明细只有 3 笔支付，历史单笔中位数为 11.0 万元。图\ref{fig:case}按日给出业务量与五个时序通道：金额长尺度通道首日即抬升到 0.61；7 日频次与 30 日趋势通道首日为 0，第二日才分别升到 0.91 与 0.76，因为窗口要先累积到观测，这是它天然的滞后；当季截至当前通道首日已到 0.84，第二、三日升到 0.99 与 1.00，它从季初累计笔数，对季内持续偏快更敏感；当年累计节奏通道三天内稳定在 0.58。图\ref{fig:case}下半部分给出 $s_{ts}$、$s_g$ 与 $s_{final}$：首个越过冻结阈值 0.8415 的日期是 10-02，$s_{final}$ 为 0.974，10-03 升到 0.995。图中横轴均为业务申请日期；数据不含入库、评分与更正的时点字段，因此这里不报告任何时延指标。
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.86\linewidth]{figures/fig_relation_evidence.pdf}
+\caption{共享收款人的关系证据与正常对照}
+\label{fig:relation}
+\end{figure*}
+
+再看关系证据。图\ref{fig:relation}左侧是上述收款人 PY000473 的关系子图：67 笔支付、52 个项目、3 个账户共享同一收款人，本案 9 笔全部落在项目 P000458 上。图中边上的 $a=0.9$ 与 $a=0.7$ 是 paid\_to 与 owns\_account 两类关系的默认强度，实际传播还要再乘阶段因子、时间衰减与同质性。右侧是与它规模相当的对照收款人 PY000390，同样高度共享（60 笔、53 个项目、3 个账户），但 2026 年单日最多 2 笔。图\ref{fig:relation}下半部分说明两者差别不在共享结构本身，而在实体级短窗口密度：$s_{entity}$ 在案例上最高 0.993，在对照上最高 0.521。这与第 7.2 节的判断一致，共享关系只用于解释风险关联，不单独构成异常证据。
+
+
+\subsection{统一阈值协议下的比较}
+为回答"精确率、召回率与事件指标的差别有多少来自阈值策略"，把全部方法放到同一条阈值规则下重评：在验证集正常支付上取分数 0.99 分位（目标误报率 0.01），冻结后测试集只评一次。MS-TRP 在本节不使用分层收缩阈值，与基线走完全相同的规则。表11列出支付级结果与事件级结果。
+
+\begin{table*}[t]
+\centering\small
+\caption{统一验证集阈值（正常样本0.99分位）下的测试集结果（各列加粗为最优）}
+\begin{tabular}{lccccccc}
+\toprule
+方法 & 统一阈值 & Payment-AUPRC $\uparrow$ & 精确率 $\uparrow$ & 召回率 $\uparrow$ & F1 $\uparrow$ & FAR/1000 $\downarrow$ & Event-F1 $\uparrow$ \\
+\midrule
+MS-TRP & 0.8059 & \textbf{0.6006} & \textbf{0.8593} & \textbf{0.3071} & \textbf{0.4525} & 8.12 & 0.4738 \\
+Isolation Forest & 0.5842 & 0.4143 & 0.7532 & 0.2161 & 0.3358 & 11.43 & 0.6184 \\
+Fixed Rule & 1.0530 & 0.4042 & 0.7371 & 0.2363 & 0.3579 & 13.61 & \textbf{0.6417} \\
+Concat-IF & 0.5792 & 0.4008 & 0.7413 & 0.2142 & 0.3324 & 12.08 & 0.6122 \\
+Forecast Residual & 8.0000 & 0.3941 & 0.7492 & 0.2069 & 0.3242 & 11.19 & 0.6065 \\
+Simple PPR & 2.5247 & 0.3865 & 0.7512 & 0.1961 & 0.3111 & 10.49 & 0.5930 \\
+Graph-only & 0.9977 & 0.3683 & 0.7438 & 0.1842 & 0.2953 & 10.25 & 0.5636 \\
+LOF & 7.6794 & 0.2422 & 0.2525 & 0.0156 & 0.0294 & 7.47 & 0.0678 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+统一口径下，MS-TRP 的 Payment-AUPRC、精确率、召回率与 F1 仍列第一：F1 为 0.4525，高于 Fixed Rule 的 0.3579 与 Isolation Forest 的 0.3358；FAR/1000 为 8.12，低于同档方法的 11.4 至 14.3，仅高于已退化的 LOF（7.47，召回 0.0156）。这排除了"MS-TRP 的优势只来自更保守的阈值"的解释。事件级仍然相反：统一阈值下 MS-TRP 的 Event-F1 为 0.4738，低于 Concat-IF 的 0.6122、Fixed Rule 的 0.6417 与 Isolation Forest 的 0.6184。支付级排序优势没有转化为事件覆盖优势，这与第6.7节的结论一致，也是本文不把"充分事件覆盖"写成结论的原因。
+
+另一点需要说明：所有方法按验证集 1\% 正常分位冻结后，测试期实际 FAR 普遍在每千笔 8 至 14 笔，远高于名义 0.01。2025 到 2026 的分数分布漂移对每个方法都存在，MS-TRP 的漂移最小（8.12），但这也说明单靠验证集分位阈值不能保证测试期误报预算。
+
+\subsection{跨生成机制的配对重复}
+为把"换一套生成机制后优势是否还在"从单模型的绝对水平变成可比较的配对结论，在两种独立生成机制（A、B）各三个数据种子的六张库上，用同一套评估代码分别计算 MS-TRP 与四个基线的 Payment-AUPRC，按（机制，种子）配对求差 $\Delta = \mathrm{AP}_{\text{MS-TRP}} - \mathrm{AP}_{\text{基线}}$。重复单位是数据，不是算法随机性，因此同一对内部的评测规模、时间划分与标签口径完全一致。
+
+六对差值全部为正：Isolation Forest 平均 $+0.048$（范围 $+0.003$ 至 $+0.145$），Concat-IF $+0.062$（$+0.021$ 至 $+0.155$），Fixed Rule $+0.084$（$+0.029$ 至 $+0.172$），Simple PPR $+0.093$（$+0.045$ 至 $+0.179$），每个基线的 6/6 对均为正。配对差值在机制 A 的种子 20 上最大（对 Simple PPR 达 $+0.179$），在机制 A 的种子 10 上对 Isolation Forest 仅 $+0.003$，接近持平。可见优势存在但幅度随数据抽样明显波动，六对样本也不足以给出置信区间或显著性判定。
+
+\section{讨论与局限性}
+\subsection{排序能力与告警能力的边界}
+MS-TRP 在 10\% 误报率下召回较高，5\% 误报率下仍占优，冻结阈值下召回更低。应用时要按可接受的复核量去选并验证工作点，不能只凭精确率判断整体有效。
+
+Temporal-only 关掉关系分支、保留节奏与季节通道，FAR/1000 为 8.42，告警与事件指标都能正常算。它与完整模型只差一个关系分支，两者排序和告警可直接比。这个差异体现的是分数与阈值接口的数值性质，不能单独当作关系分支提升辨识力的证据。
+
+阈值口径是另一个容易混淆的因素。表4中各方法使用各自验证集冻结的阈值，表7的变体则统一在分层收缩阈值下报告；同一组分数只换阈值，实体聚集命中就从 27/43 变到 17/43（第6.3节）。因此本文把检测器比较与阈值策略比较分开报告，不把工作点差异算作检测能力差异，也不把测试期 Recall@FAR 当作部署阈值下的实际召回。
+
+\subsection{关系风险与结构种子的限制}
+图传播依赖时序种子。共享收款人或账户没有独立异常种子时，传播只能把相邻支付的风险重新分配，不能只靠共享结构生成风险。合法公共供应商和异常资金聚集可能同样高连接，单纯抬高共享边权会连正常交易的风险一并抬高。后续应当构造独立结构证据，在输入权限与时间边界不变的条件下检验它的增量价值。
+
+目前源头实体自身的时序种子为零，桥接支付与受影响支付的标识也没形成可区分分组，所以现有诊断验不了异常源头定位。本文把关系证据限定为可回查的关联路径，不声称能靠 PPR 识别真实资金风险源头。
+
+现有生成机制下，共享账户子类会产生归属冲突，规则可确定性命中；共享收款人子类不产生冲突，冻结阈值下只覆盖 1/26。构造归属合法但交易结构异常的案例，以及在统一阈值下比较规则、PPR 与完整模型，是检验关系分支外部有效性的必要条件，本文尚未完成。
+
+\subsection{合成数据与复现限制}
+三组数据种子下与生成器 A 对照，A 的 AUPRC 均值 0.5323（区间 0.4619 至 0.5934），B 为 0.5175（区间 0.5094 至 0.5259），跨机制跌幅 2.77\%（按未取整均值算）。B 机制下 AUPRC 仍明显高于随机，模型跨机制仍有效，只是增益收窄。逐种子的配对结果见图8，与基线的配对差见第6.10节。
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_generator.pdf}
+\caption{两种生成机制下MS-TRP的逐种子结果}
+\end{figure*}
+
+时间可追溯目前只由 \texttt{apply\_date} 一个日期键保证：模型按申请日期截断特征与图边，但数据不含字段级发生时间、可读时间、版本号与回填记录，因此不能证明历史参照、群体统计、账户归属与图拓扑都取自当时版本。要做到逐字段回放，需要在数据层补这些字段，并给出延迟补录与历史更正的完整回放案例。
+
+统计证据同样有限。主结果是单次运行，0.0005 至 0.0023 的组件差异没有重复运行与配对检验；跨生成机制只有三个数据种子，报告的是最小值至最大值，不构成置信区间。支付记录存在项目、实体与事件相关，逐条独立假设会低估不确定性，后续应按项目、事件或时间块重采样。本文实测了单次全量重算的墙钟耗时（164 至 191 秒，峰值内存 0.85 GB）与图规模（148,558 个节点、430,922 条边），并单独测了日终增量打分（中位 40 毫秒/日、95 分位 71 毫秒）；但增量测量只覆盖转移矩阵重建与一次 PPR，不含数据入库、特征重算与人工复核，也没有测并发与长期运行的内存曲线。窗口权重、门控温度、关系衰减、完整变体开关，都需随实现配置一起归档，才支持精确复算。
+
+\section{结论}
+本文提出面向预算执行异常检测的 MS-TRP 模型，把多尺度稳健时序参照、异构图关系传播、可靠度门控与分层阈值校准整合为一条可追溯的风险分析流程。结果表明，支付级排序、阈值告警、事件检出必须分开评价；在当前场景里，排序性能的主要贡献来自多尺度组合。
+
+证据只支持部分组件。阶段边权与动态门控的差别在 0.0005 至 0.0023 之间，小于单次运行的波动量级，本文不把它们算作已验证的创新；关系相关组件的整体 AUPRC 增益有限，冻结阈值下的实体聚集召回几乎全部来自账户归属硬规则，且该规则与共享账户异常的注入方式直接对应，共享收款人子类只覆盖 1/26。阈值重冻结单独就能让实体聚集命中在 17 与 30 之间变化，说明工作点选择与检测能力必须分开报告。三个历史跨度组内模型表现都较好，事件覆盖与严格误报预算下仍有不足。未来围绕独立结构种子、跨生成机制配对重复、真实业务数据与可复现配置继续推进，才能界定这套框架的适用条件。
+
+\section*{参考文献}
+\begin{thebibliography}{40}
+\bibitem{ref1} CHANDOLA V, BANERJEE A, KUMAR V. Anomaly detection: A survey[J]. ACM Computing Surveys, 2009, 41, no. 3: Article 15. DOI: 10.1145/1541880.1541882.
+\bibitem{ref2} LIU F T, TING K M, ZHOU Z H. Isolation Forest[C]//Proceedings of the 2008 IEEE International Conference on Data Mining. 2008: 413–422. DOI: 10.1109/ICDM.2008.17.
+\bibitem{ref3} BREUNIG M M, KRIEGEL H P, NG R T, et al. LOF: Identifying density-based local outliers[C]//Proceedings of the 2000 ACM SIGMOD International Conference on Management of Data. 2000: 93–104. DOI: 10.1145/342009.335388.
+\bibitem{ref4} ROUSSEEUW P J, VAN DRIESSEN K. A fast algorithm for the minimum covariance determinant estimator[J]. Technometrics, 1999, 41, no. 3: 212–223. DOI: 10.1080/00401706.1999.10485670.
+\bibitem{ref5} HE Z, XU X, DENG S. Discovering cluster-based local outliers[J]. Pattern Recognition Letters, 2003, 24, nos. 9–10: 1641–1650. DOI: 10.1016/S0167-8655(03)00003-5.
+\bibitem{ref6} SCHÖLKOPF B, PLATT J C, SHAWE-TAYLOR J, et al. Estimating the support of a high-dimensional distribution[J]. Neural Computation, 2001, 13, no. 7: 1443–1471. DOI: 10.1162/089976601750264965.
+\bibitem{ref7} CHEN T, GUESTRIN C. XGBoost: A scalable tree boosting system[C]//Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining. 2016: 785–794. DOI: 10.1145/2939672.2939785.
+\bibitem{ref8} SAKURADA M, YAIRI T. Anomaly detection using autoencoders with nonlinear dimensionality reduction[C]//Proceedings of the 2nd Workshop on Machine Learning for Sensory Data Analysis (MLSDA 2014). 2014: 4. DOI: 10.1145/2689746.2689747.
+\bibitem{ref9} AN J, CHO S. Variational autoencoder based anomaly detection using reconstruction probability[J]. Special Lecture on IE, 2015, 2, no. 1: 1–18.
+\bibitem{ref10} ZONG B, SONG Q, MIN M R, et al. Deep autoencoding Gaussian mixture model for unsupervised anomaly detection[C]//International Conference on Learning Representations (ICLR). 2018.
+\bibitem{ref11} RUFF L, VANDERMEULEN R, GOERNITZ N, et al. Deep one-class classification[C]//Proceedings of the 35th International Conference on Machine Learning (PMLR 80). 2018: 4393–4402.
+\bibitem{ref12} PANG G, SHEN C, CAO L, et al. Deep learning for anomaly detection: A review[J]. ACM Computing Surveys, 2021, 54, no. 2: 1–38. DOI: 10.1145/3439950.
+\bibitem{ref13} LI Z, ZHAO Y, HU X, et al. ECOD: Unsupervised outlier detection using empirical cumulative distribution functions[J]. IEEE Transactions on Knowledge and Data Engineering, 2023, 35, no. 12: 12181–12193. DOI: 10.1109/TKDE.2022.3159580.
+\bibitem{ref14} LI Z, ZHAO Y, BOTTA N, et al. COPOD: Copula-based outlier detection[C]//Proceedings of the 2020 IEEE International Conference on Data Mining. 2020: 1118–1123. DOI: 10.1109/ICDM50108.2020.00135.
+\bibitem{ref15} ZHAO Y, NASRULLAH Z, LI Z. PyOD: A Python toolbox for scalable outlier detection[J]. Journal of Machine Learning Research, 2019, 20, no. 96: 1–7. https://jmlr.org/papers/v20/19-011.html.
+\bibitem{ref16} PEDREGOSA F, VAROQUAUX G, GRAMFORT A, et al. Scikit-learn: Machine learning in Python[J]. Journal of Machine Learning Research, 2011, 12: 2825–2830.
+\bibitem{ref17} HAN S, HU X, HUANG H, et al. ADBench: Anomaly detection benchmark[C]//Advances in Neural Information Processing Systems 35 (Datasets and Benchmarks Track). 2022. arXiv: 2206.09426.
+\bibitem{ref18} GOLDSTEIN M, UCHIDA S. A comparative evaluation of unsupervised anomaly detection algorithms for multivariate data[J]. PLOS ONE, 2016, 11, no. 4: e0152173. DOI: 10.1371/journal.pone.0152173.
+\bibitem{ref19} SAITO T, REHMSMEIER M. The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets[J]. PLOS ONE, 2015, 10, no. 3: e0118432. DOI: 10.1371/journal.pone.0118432.
+\bibitem{ref20} BONIOL P, KRISHNA A K, BRUEL M, et al. VUS: Effective and efficient accuracy measures for time-series anomaly detection[J]. The VLDB Journal, 2025, 34: Article 32. DOI: 10.1007/s00778-025-00907-x.
+\bibitem{ref21} SU Y, ZHAO Y, NIU C, et al. Robust anomaly detection for multivariate time series through stochastic recurrent neural network[C]//Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining. 2019: 2828–2837.
+\bibitem{ref22} AUDIBERT J, MICHIARDI P, GUYARD F, et al. USAD: Unsupervised anomaly detection on multivariate time series[C]//Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining. 2020: 3395–3404. DOI: 10.1145/3394486.3403392.
+\bibitem{ref23} TULI S, CASALE G, JENNINGS N R. TranAD: Deep transformer networks for anomaly detection in multivariate time series data[J]. Proceedings of the VLDB Endowment, 2022, 15, no. 6: 1201–1214.
+\bibitem{ref24} XU J, WU H, WANG J, et al. Anomaly Transformer: Time series anomaly detection with association discrepancy[C]//International Conference on Learning Representations (ICLR). 2022.
+\bibitem{ref25} LAVIN A, AHMAD S. Evaluating real-time anomaly detection algorithms: The Numenta anomaly benchmark[C]//Proceedings of the 14th IEEE International Conference on Machine Learning and Applications. 2015: 38–44. DOI: 10.1109/ICMLA.2015.141.
+\bibitem{ref26} SIFFER A, FOUQUE P A, TERMIER A, et al. Anomaly detection in streams with extreme value theory[C]//Proceedings of the 23rd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining. 2017: 1067–1075. DOI: 10.1145/3097983.3098144.
+\bibitem{ref27} LIU Q, PAPARRIZOS J. The elephant in the room: Towards a reliable time-series anomaly detection benchmark[C]//Advances in Neural Information Processing Systems 37 (Datasets and Benchmarks Track). 2024: 108231–108261. DOI: 10.5555/3737916.3741353.
+\bibitem{ref28} QIU X, LI Z, QIU W, et al. TAB: Unified benchmarking of time series anomaly detection methods[J]. Proceedings of the VLDB Endowment, 2025, 18, no. 9: 2775–2789. DOI: 10.14778/3746405.3746407.
+\bibitem{ref29} PAGE L, BRIN S, MOTWANI R, et al. The PageRank citation ranking: Bringing order to the web[R]. Stanford InfoLab, 1999. Technical Report 1999-66.
+\bibitem{ref30} KIPF T N, WELLING M. Semi-supervised classification with graph convolutional networks[C]//International Conference on Learning Representations (ICLR). 2017. arXiv: 1609.02907.
+\bibitem{ref31} VELIČKOVIĆ P, CUCURULL G, CASANOVA A, et al. Graph attention networks[C]//International Conference on Learning Representations (ICLR). 2018.
+\bibitem{ref32} KLICPERA J, BOJCHEVSKI A, GÜNNEMANN S. Predict then propagate: Graph neural networks meet personalized PageRank[C]//International Conference on Learning Representations (ICLR). 2019. arXiv: 1810.05997.
+\bibitem{ref33} HOOI B, SONG H A, BEUTEL A, et al. FRAUDAR: Bounding graph fraud in the face of camouflage[C]//Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining. 2016: 895–904. DOI: 10.1145/2939672.2939747.
+\bibitem{ref34} MA X, WU J, XUE S, et al. A comprehensive survey on graph anomaly detection with deep learning[J]. IEEE Transactions on Knowledge and Data Engineering, 2023, 35, no. 12: 12012–12038. DOI: 10.1109/TKDE.2021.3118815.
+\bibitem{ref35} AKOGLU L, TONG H, KOUTRA D. Graph based anomaly detection and description: A survey[J]. Data Mining and Knowledge Discovery, 2015, 29, no. 3: 626–688. DOI: 10.1007/s10618-014-0365-y.
+\bibitem{ref36} DHUNGEL A K, WATERMANN L S, WEGNER C, et al. Using machine learning for anomaly detection in German public budgeting data[C]//Proceedings of the AHFE International Conference on Human Systems Engineering and Design (IHSI 2024). 2024, 119: 548–559. DOI: 10.54941/ahfe1004520.
+\bibitem{ref37} LUNDBERG S M, LEE S I. A unified approach to interpreting model predictions[C]//Advances in Neural Information Processing Systems 30. 2017: 4765–4774.
+\bibitem{ref38} YE H, ZHAO H, FAN W, et al. DRL: Decomposed representation learning for tabular anomaly detection[C]//The Thirteenth International Conference on Learning Representations (ICLR). 2025. https://openreview.net/forum?id=CJnceDksRd
+\bibitem{ref39} SHEN Y, WEN H, AKOGLU L. FoMo-0D: A foundation model for zero-shot tabular outlier detection[J]. Transactions on Machine Learning Research, 2025. https://openreview.net/forum?id=XCQzwpR9jE
+\bibitem{ref40} LI Z, HUANG Q, ZHU Y, et al. Scalable, explainable and provably robust anomaly detection with one-step flow matching[C]//Advances in Neural Information Processing Systems 38. 2025. arXiv: 2510.18328.
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,87 @@
+[
+  {
+    "model": "fixed_rule",
+    "source": "项目内规则引擎",
+    "impl": "baselines/fixed_rule.py"
+  },
+  {
+    "model": "robust_mad",
+    "source": "稳健MAD",
+    "impl": "baselines/robust_mad.py"
+  },
+  {
+    "model": "isolation_forest",
+    "source": "sklearn.ensemble.IsolationForest",
+    "impl": "baselines/isolation_forest.py"
+  },
+  {
+    "model": "lof_novelty",
+    "source": "sklearn.neighbors.LocalOutlierFactor(novelty=True)",
+    "impl": "baselines/lof.py"
+  },
+  {
+    "model": "forecast_residual",
+    "source": "历史窗口预测残差",
+    "impl": "baselines/forecast_residual.py"
+  },
+  {
+    "model": "graph_only_structure",
+    "source": "评分时点共享关系结构统计",
+    "impl": "baselines/graph_baseline.py"
+  },
+  {
+    "model": "ecod",
+    "source": "pyod.models.ecod.ECOD",
+    "impl": "baselines/forced.py"
+  },
+  {
+    "model": "copod",
+    "source": "pyod.models.copod.COPOD",
+    "impl": "baselines/forced.py"
+  },
+  {
+    "model": "mcd",
+    "source": "pyod.models.mcd.MCD / sklearn MinCovDet",
+    "impl": "baselines/forced.py"
+  },
+  {
+    "model": "cblof",
+    "source": "pyod.models.cblof.CBLOF",
+    "impl": "baselines/forced.py"
+  },
+  {
+    "model": "random_uniform",
+    "source": "U(0,1)固定种子",
+    "impl": "baselines/forced.py"
+  },
+  {
+    "model": "constant_score",
+    "source": "全样本0.5",
+    "impl": "baselines/forced.py"
+  },
+  {
+    "model": "shared_payee_count",
+    "source": "前30日Payee跨项目数",
+    "impl": "baselines/forced.py"
+  },
+  {
+    "model": "shared_account_concentration",
+    "source": "前30日Account跨Payee集中度",
+    "impl": "baselines/forced.py"
+  },
+  {
+    "model": "simple_ppr",
+    "source": "同种子拓扑+均匀边权PPR",
+    "impl": "baselines/forced.py"
+  },
+  {
+    "model": "concat_if",
+    "source": "时序特征+评分前图聚合(IF)",
+    "impl": "baselines/forced.py"
+  },
+  {
+    "model": "full_ms_trp",
+    "source": "时序+阶段感知PPR+可靠度门控",
+    "impl": "src/pipeline.py"
+  }
+]

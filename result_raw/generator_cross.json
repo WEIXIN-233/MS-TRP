@@ -1,0 +1,22 @@
+{
+  "seeds": [
+    10,
+    20,
+    30
+  ],
+  "mechanism_A": {
+    "mean": 0.532271,
+    "min": 0.461924,
+    "max": 0.593357,
+    "std": 0.054056
+  },
+  "mechanism_B": {
+    "mean": 0.517547,
+    "min": 0.509366,
+    "max": 0.525868,
+    "std": 0.006738
+  },
+  "cross_mechanism_drop": 0.014724,
+  "relative_drop_pct": 2.77,
+  "conclusion": "跨机制成立：B 机制下 MS-TRP 仍保持明显优于随机基线(AP>>阳性率)"
+}

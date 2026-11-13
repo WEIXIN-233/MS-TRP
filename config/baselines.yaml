@@ -1,0 +1,20 @@
+fixed_rule:
+  amount_abs_threshold_wan: 100.0
+  amount_median_mult: 5.0
+  amount_mean_mult: 3.0
+robust_mad:
+  k: 3.5
+isolation_forest:
+  n_estimators: 200
+  max_samples: auto
+  contamination: auto
+lof_novelty:
+  n_neighbors: 20
+  novelty: true
+  contamination: auto
+cblof:
+  n_clusters: 8
+mcd:
+  support_fraction: 0.7
+ecod: {}
+copod: {}

@@ -1,0 +1,6 @@
+﻿period_type,period_id,n_normal,fp,far_per_1000,far_per_1000_ci_low,far_per_1000_ci_high,far_val,far_ratio,delta_abs,denominator_valid
+quarter,2026Q1,2284,2,0.8757,0.2402,3.1873,1.3647,0.6416,-0.4891,True
+quarter,2026Q2,3488,2,0.5734,0.1573,2.0884,1.3647,0.4201,-0.7913,True
+quarter,2026Q3,5456,4,0.7331,0.2851,1.8837,1.3647,0.5372,-0.6316,True
+quarter,2026Q4,8974,23,2.563,1.7085,3.8431,1.3647,1.878,1.1982,True
+stage,Early,20202,31,1.5345,1.0813,2.1772,1.3647,1.1244,0.1698,True

@@ -1,0 +1,9 @@
+﻿model,data_seed,feature_set_id,fit_split,payment_auprc,feature_hash
+ecod,main,raw,train,0.36761,a6a13a2cb76c92d6
+ecod,main,derived,train,0.499086,5c62d21533732c8f
+copod,main,raw,train,0.389418,a6a13a2cb76c92d6
+copod,main,derived,train,0.523764,5c62d21533732c8f
+mcd,main,raw,train,0.354012,a6a13a2cb76c92d6
+mcd,main,derived,train,0.451683,5c62d21533732c8f
+cblof,main,raw,train,0.213582,a6a13a2cb76c92d6
+cblof,main,derived,train,0.213606,5c62d21533732c8f

@@ -1,0 +1,11 @@
+[17] img=False style=Heading 2 :: 2.3 动态异构图与关系传播
+[37] img=True style=Normal :: 
+[38] img=False style=Normal :: 图1 MS-TRP总体框架
+[50] img=False style=Heading 2 :: 4.2 阶段感知异构图风险传播
+[100] img=True style=Normal :: 
+[101] img=False style=Normal :: 图2 主要方法的Payment-AUPRC比较
+[119] img=True style=Normal :: 
+[120] img=False style=Normal :: 图3 历史跨度分组的Payment-AUPRC
+[129] img=True style=Normal :: 
+[130] img=False style=Normal :: 图4 测试季度误报及验证集经验参照
+[141] img=False style=Normal :: 图传播依赖时序种子。共享收款人或账户没有独立异常种子时，传播只能把相邻支付的风险重新分配，不能只靠共享结构生成风险。合法公共供应商和异常资金聚集可能同样高连接，单纯抬高共享边权会连正常交易的风险一起抬。后续应当构造独立结构证据，在输入权限与

@@ -1,0 +1,7 @@
+line0: 6 cols :: ﻿sample_id,score_time,feature_name,window,value,source_max_available_at
+
+line1: 6 cols :: PA0000020098,2023-01-01,amount,none,11.91,2023-01-01
+
+line2: 6 cols :: PA0000058887,2023-01-01,amount,none,8.29,2023-01-01
+
+line3: 6 cols :: PA0000076643,2023-01-01,amount,none,8.69,2023-01-01

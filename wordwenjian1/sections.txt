@@ -1,0 +1,12 @@
+sections=6
+sec0: start=NEW_PAGE (2), colnum=1, page_w=8.50, left=0.71, right=0.71
+sec1: start=CONTINUOUS (0), colnum=2, page_w=8.50, left=0.71, right=0.71
+sec2: start=CONTINUOUS (0), colnum=1, page_w=8.50, left=0.71, right=0.71
+sec3: start=CONTINUOUS (0), colnum=2, page_w=8.50, left=0.71, right=0.71
+sec4: start=CONTINUOUS (0), colnum=1, page_w=8.50, left=0.71, right=0.71
+sec5: start=CONTINUOUS (0), colnum=2, page_w=8.50, left=0.71, right=0.71
+sectPr in para 4: 
+sectPr in para 36: 
+sectPr in para 39: 
+sectPr in para 93: 
+sectPr in para 97: 

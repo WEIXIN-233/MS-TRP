@@ -1,0 +1,10 @@
+﻿relation_type,stage_source,beta_unit,homogeneity_definition,a_r,zeta_r,valid_from
+owns,src=Unit(非支付)→1.0,无（静态关系）,h=1.0 常量（同资金渠道等扩展预留，基础版未启用）,1.0,1.0（联合对称归一化，未实现 per-type 混合）,v1（训练期固定默认值，验证集未调）
+allocates,src=Project(非支付)→1.0,无（静态关系）,h=1.0 常量（同资金渠道等扩展预留，基础版未启用）,1.0,1.0（联合对称归一化，未实现 per-type 混合）,v1（训练期固定默认值，验证集未调）
+used_by,src=Indicator(非支付)→1.0,1/天,h=1.0 常量（同资金渠道等扩展预留，基础版未启用）,1.0,1.0（联合对称归一化，未实现 per-type 混合）,v1（训练期固定默认值，验证集未调）
+executed_as,src=PaymentApplication→项目阶段,1/天,h=1.0 常量（同资金渠道等扩展预留，基础版未启用）,0.8,1.0（联合对称归一化，未实现 per-type 混合）,v1（训练期固定默认值，验证集未调）
+paid_to,src=PaymentApplication→项目阶段,1/天,h=1.0 常量（同资金渠道等扩展预留，基础版未启用）,0.9,1.0（联合对称归一化，未实现 per-type 混合）,v1（训练期固定默认值，验证集未调）
+through,src=PaymentApplication→项目阶段,1/天,h=1.0 常量（同资金渠道等扩展预留，基础版未启用）,0.9,1.0（联合对称归一化，未实现 per-type 混合）,v1（训练期固定默认值，验证集未调）
+owns_account,src=Payee(非支付)→1.0,无（静态关系）,h=1.0 常量（同资金渠道等扩展预留，基础版未启用）,0.7,1.0（联合对称归一化，未实现 per-type 混合）,v1（训练期固定默认值，验证集未调）
+classified_as,src=PaymentApplication→项目阶段,无（静态关系）,h=1.0 常量（同资金渠道等扩展预留，基础版未启用）,0.5,1.0（联合对称归一化，未实现 per-type 混合）,v1（训练期固定默认值，验证集未调）
+belongs_to,src=PaymentApplication→项目阶段,无（静态关系）,h=1.0 常量（同资金渠道等扩展预留，基础版未启用）,0.5,1.0（联合对称归一化，未实现 per-type 混合）,v1（训练期固定默认值，验证集未调）

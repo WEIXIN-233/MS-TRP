@@ -1,0 +1,49 @@
+data_contract_version: v2.1
+generator: 仿真V3.py
+years:
+- 2023
+- 2024
+- 2025
+- 2026
+total_payments_target: 80000
+data_seeds:
+- 10
+- 20
+- 30
+model_seeds:
+- 1
+- 2
+- 3
+- 4
+- 5
+anomaly_types:
+- AMOUNT_SPIKE
+- FREQ_BURST
+- PROGRESS_LAG
+- YEAREND_CONC
+- HISTORICAL_SHIFT
+- ENTITY_AGGREGATION
+point_anomaly_types:
+- AMOUNT_SPIKE
+- FREQ_BURST
+event_anomaly_types:
+- PROGRESS_LAG
+- YEAREND_CONC
+- HISTORICAL_SHIFT
+- ENTITY_AGGREGATION
+nine_entities:
+- unit
+- project
+- indicator
+- payment_apply
+- voucher
+- payee
+- bank_account
+- expense_category
+- procurement_item
+payment_types:
+- UNIT_ZERO_BALANCE
+- FINANCE_ZERO_BALANCE
+- SPECIAL_DEPOSIT
+- DIRECT_PAYMENT
+large_pay_threshold_wan: 100.0

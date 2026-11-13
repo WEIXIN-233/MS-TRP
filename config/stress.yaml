@@ -1,0 +1,11 @@
+train_drop_ratio:
+- 0.0
+- 0.1
+- 0.3
+edge_drop_ratio:
+- 0.0
+- 0.2
+cold_start_buckets:
+- 30
+- 180
+note: 缺失只遮蔽 score_time 之前的可见历史字段

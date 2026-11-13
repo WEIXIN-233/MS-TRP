@@ -1,0 +1,2 @@
+﻿data_seed,grid_id,model_vus,null_vus,ratio,warning_threshold,null_flag,n_valid_points
+main,natural_month,0.540258,0.143041,0.264764,0.7,False,12

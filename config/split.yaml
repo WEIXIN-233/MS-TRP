@@ -1,0 +1,11 @@
+train:
+  start: '2023-01-01'
+  end: '2024-12-31'
+val:
+  start: '2025-01-01'
+  end: '2025-12-31'
+test:
+  start: '2026-01-01'
+  end: '2026-12-31'
+score_time_mode: day_end
+note: 时间前向：train<val<test 严格无泄漏；保留 2023（见 data-2023-split）

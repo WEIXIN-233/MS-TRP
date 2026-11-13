@@ -1,0 +1,9 @@
+% ---------------------------------------------------------------------------
+% 本文件是 stix.sty 的本地占位，仅用于本目录下的 cas-dc 文档。
+%
+% cas-dc.cls 会无条件加载 legacy 的 [notext]{stix}。该宏包声明的是 Type1
+% 编码的数学符号字体，在 XeLaTeX（本稿用 xelatex 编译中文）下字形槽位映射
+% 错位，减号会被排成星号、“×”会消失。这里用同名占位文件让类文件跳过它，
+% 再由 main.tex 用 unicode-math + STIX Two Math 提供同款数学字体。
+% ---------------------------------------------------------------------------
+\ProvidesPackage{stix}[2026/11/12 local stub: skip legacy STIX under XeLaTeX]

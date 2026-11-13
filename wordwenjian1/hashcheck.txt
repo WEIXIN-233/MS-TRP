@@ -1,0 +1,5 @@
+: identical=False cur=False bak=True
+image1.png: identical=True cur=True bak=True
+image2.png: identical=True cur=True bak=True
+image3.png: identical=True cur=True bak=True
+image4.png: identical=True cur=True bak=True

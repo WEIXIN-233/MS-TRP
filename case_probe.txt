@@ -1,0 +1,14 @@
+['event_id', 'anomaly_type', 'anomaly_subtype', 'risk_level', 'target_entity_type', 'target_entity_id', 'start_time', 'end_time', 'anchor_apply_id', 'affected_apply_ids', 'related_entities', 'inject_parameters']
+FREQ_BURST events=71
+      event_id anomaly_type anomaly_subtype risk_level target_entity_type target_entity_id  start_time    end_time anchor_apply_id                                                                                               affected_apply_ids      related_entities               inject_parameters
+4392  EV004393   FREQ_BURST            短期高频     MEDIUM   INDICATOR_DETAIL       DT00002159  2023-03-01  2023-03-03   SPIKE85021665                SPIKE85021665,SPIKE76526763,SPIKE10491215,SPIKE63382563,SPIKE33042471,SPIKE44283743,SPIKE22375608      区疾控中心,DT00002159  detail=DT00002159,n=7,days=2-3
+4393  EV004394   FREQ_BURST            短期高频     MEDIUM   INDICATOR_DETAIL       DT00003751  2023-05-01  2023-05-03   SPIKE58867786                SPIKE58867786,SPIKE51574939,SPIKE37502128,SPIKE52095958,SPIKE23982986,SPIKE56491701,SPIKE50067036       区少体校,DT00003751  detail=DT00003751,n=7,days=2-3
+4394  EV004395   FREQ_BURST            短期高频     MEDIUM   INDICATOR_DETAIL       DT00005421  2024-05-01  2024-05-03   SPIKE52816225                                            SPIKE52816225,SPIKE16083850,SPIKE18515019,SPIKE89892700,SPIKE15359615  区政府投资审计中心,DT00005421  detail=DT00005421,n=5,days=2-3
+4395  EV004396   FREQ_BURST            短期高频     MEDIUM   INDICATOR_DETAIL       DT00001516  2023-10-01  2023-10-03   SPIKE25956508  SPIKE25956508,SPIKE32075428,SPIKE28805356,SPIKE82717299,SPIKE70583621,SPIKE92355125,SPIKE42664235,SPIKE41055871       盈浦街道,DT00001516  detail=DT00001516,n=8,days=2-3
+4396  EV004397   FREQ_BURST            短期高频     MEDIUM   INDICATOR_DETAIL       DT00000095  2024-03-01  2024-03-03   SPIKE34824265                                            SPIKE34824265,SPIKE33161445,SPIKE72037693,SPIKE14157693,SPIKE79663522       区卫健委,DT00000095  detail=DT00000095,n=5,days=2-3
+4397  EV004398   FREQ_BURST            短期高频     MEDIUM   INDICATOR_DETAIL       DT00000853  2025-11-01  2025-11-03   SPIKE93477005                              SPIKE93477005,SPIKE53229462,SPIKE96087976,SPIKE79547685,SPIKE91547525,SPIKE99968132       区财政局,DT00000853  detail=DT00000853,n=6,days=2-3
+SNAPSHOT: ['snapshot_id', 'indicator_id', 'unit_id', 'month_end', 'due_progress', 'actual_progress']
+   snapshot_id indicator_id unit_id month_end  due_progress  actual_progress
+0  SNP00000001    I00000001    D001   2023-01        0.0138           0.0818
+1  SNP00000002    I00000001    D001   2023-02        0.0413           0.1761
+2  SNP00000003    I00000001    D001   2023-03        0.0830           0.2579

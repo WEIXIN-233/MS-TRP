@@ -1,0 +1,17 @@
+﻿artifact,source,command,status
+metrics_main.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\metrics_main.csv,python -m experiment.build_metrics_main,copied
+metrics_range.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\metrics_range.csv,python -m experiment.build_metrics_main,copied
+metrics_ranking.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\metrics_ranking.csv,python -m experiment.build_metrics_main,copied
+metrics_family.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\metrics_family.csv,python -m experiment.run_summary_metrics,copied
+heuristic_structure_metrics.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\heuristic_structure_metrics.csv,python -m experiment.run_struct_heuristics,copied
+diagnostics_pa.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\diagnostics_pa.csv,python -m experiment.run_pa_diagnostics,copied
+table_feature_isolation.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\table_feature_isolation.csv,python -m experiment.run_table_isolation,copied
+feature_column_manifest.json,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\feature_column_manifest.json,python -m experiment.run_table_isolation,copied
+vus_pr_null_check.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\vus_pr_null_check.csv,python -m experiment.run_vus_null,copied
+paired_effects.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\paired_effects.csv,python -m experiment.run_summary_metrics,copied
+cold_start.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\cold_start.csv,python -m experiment.run_cold_start,copied
+category.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\category.csv,python -m experiment.run_summary_metrics,copied
+event_metrics.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\event_metrics.csv,python -m experiment.run_summary_metrics,copied
+ablation.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\run_ablation\ablation.csv,python -m experiment.run_ablation,copied
+robustness.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\run_robustness\robustness.csv,python -m experiment.run_robustness,copied
+gate_response.csv,C:\Users\魏新雨\PycharmProjects\pythonProject5\venv\MS-TRP\result_raw\gate_response.csv,python -m experiment.run_gate_response,copied

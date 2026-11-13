@@ -1,0 +1,12 @@
+﻿family,metric,output_file,threshold_dependent,used_for_main_conclusion
+point,payment_auprc,metrics_main.csv,False,True
+point,payment_f1,metrics_main.csv,True,True
+point,precision,metrics_main.csv,True,True
+point,recall,metrics_main.csv,True,True
+point,far_1000,metrics_main.csv,True,True
+point,event_f1,metrics_main.csv,True,True
+point,f1_raw,metrics_main.csv,True,True
+point,recall_at_far5,metrics_main.csv,True,True
+point,recall_at_far10,metrics_main.csv,True,True
+interval,vus_pr,metrics_range.csv,False,False
+ranking,ndcg_at_k,metrics_ranking.csv,False,False

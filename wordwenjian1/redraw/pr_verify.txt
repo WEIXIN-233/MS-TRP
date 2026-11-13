@@ -1,0 +1,7 @@
+fixed_rules        recomputed=0.404196  metrics_main=0.404196  diff=2.29e-08
+isolation_forest   recomputed=0.414256  metrics_main=0.414256  diff=4.00e-07
+simple_ppr         recomputed=0.386543  metrics_main=0.386543  diff=3.81e-07
+concat_if          recomputed=0.400786  metrics_main=0.400786  diff=1.51e-08
+MS-TRP             recomputed=0.600616  metrics_main=0.600616  diff=3.55e-07
+temporal_only      recomputed=0.573441  metrics_main=0.573441  diff=4.12e-07
+MATCH

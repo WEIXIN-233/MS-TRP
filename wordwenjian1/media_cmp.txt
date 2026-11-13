@@ -1,0 +1,5 @@
+word/media/: compressed 0->0  uncompressed 0->0  (0->0 saved)
+word/media/image1.png: compressed 4479635->3475881  uncompressed 4478950->4478950  (-685->1003069 saved)
+word/media/image2.png: compressed 282368->195908  uncompressed 282323->282323  (-45->86415 saved)
+word/media/image3.png: compressed 319606->234571  uncompressed 319556->319556  (-50->84985 saved)
+word/media/image4.png: compressed 252216->180910  uncompressed 252176->252176  (-40->71266 saved)

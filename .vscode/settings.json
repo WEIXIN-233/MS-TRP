@@ -1,0 +1,69 @@
+{
+    // LaTeX编译器配置
+    "latex-workshop.latex.tools": [
+        {
+            "name": "pdflatex",
+            "command": "D:\\texlive\\2026\\bin\\windows\\pdflatex.exe",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "%DOCFILE%"
+            ]
+        },
+        {
+            "name": "xelatex",
+            "command": "D:\\texlive\\2026\\bin\\windows\\xelatex.exe",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "%DOCFILE%"
+            ]
+        },
+        {
+            "name": "bibtex",
+            "command": "D:\\texlive\\2026\\bin\\windows\\bibtex.exe",
+            "args": [
+                "%DOCFILE%"
+            ]
+        }
+    ],
+    // 编译链配置（优先xelatex，支持中文）
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "XeLaTeX",
+            "tools": [
+                "xelatex"
+            ]
+        },
+        {
+            "name": "XeLaTeX -> BibTeX -> XeLaTeX*2",
+            "tools": [
+                "xelatex",
+                "bibtex",
+                "xelatex",
+                "xelatex"
+            ]
+        }
+    ],
+    // 默认编译链（XeLaTeX，支持中文）
+    "latex-workshop.latex.recipe.default": "XeLaTeX",
+    // 保存时自动编译
+    "latex-workshop.latex.autoBuild.run": "onSave",
+    // 内置PDF预览（无需额外软件）
+    "latex-workshop.view.pdf.viewer": "tab",
+    // 编译后清理临时文件
+    "latex-workshop.latex.clean.fileTypes": [
+        "*.aux",
+        "*.bbl",
+        "*.blg",
+        "*.idx",
+        "*.ind",
+        "*.lof",
+        "*.lot",
+        "*.out",
+        "*.toc",
+        "*.log"
+    ]
+}

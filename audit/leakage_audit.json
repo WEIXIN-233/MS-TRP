@@ -1,0 +1,9 @@
+{
+  "cutoff": "2026-06-30",
+  "n_hist": 68850,
+  "n_future": 16480,
+  "max_abs_diff": 0.0,
+  "mean_abs_diff": 0.0,
+  "tolerance": 1e-06,
+  "pass": true
+}

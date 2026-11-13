@@ -1,0 +1,32 @@
+paragraphs=200 tables=10 sections=12 shapes=6
+  sec0: cols=1 start=NEW_PAGE (2)
+  sec1: cols=2 start=CONTINUOUS (0)
+  sec2: cols=1 start=CONTINUOUS (0)
+  sec3: cols=2 start=CONTINUOUS (0)
+  sec4: cols=1 start=CONTINUOUS (0)
+  sec5: cols=2 start=CONTINUOUS (0)
+  sec6: cols=1 start=CONTINUOUS (0)
+  sec7: cols=2 start=CONTINUOUS (0)
+  sec8: cols=1 start=CONTINUOUS (0)
+  sec9: cols=2 start=CONTINUOUS (0)
+  sec10: cols=1 start=CONTINUOUS (0)
+  sec11: cols=2 start=CONTINUOUS (0)
+shape0: 7.08 x 3.93 in
+shape1: 7.00 x 2.21 in
+shape2: 7.00 x 2.93 in
+shape3: 3.35 x 2.04 in
+shape4: 3.35 x 1.94 in
+shape5: 7.00 x 3.08 in
+[37] img=True :: 
+[38] img=False :: 图1 MS-TRP总体框架
+[101] img=True :: 
+[102] img=False :: 图2 主要方法的排序概览、PR曲线与低误报召回
+[118] img=True :: 
+[119] img=False :: 图3 组件变体的排序性能与实体聚集召回
+[125] img=True :: 
+[126] img=False :: 图4 历史跨度分组的Payment-AUPRC
+[135] img=True :: 
+[136] img=False :: 图5 测试季度误报及验证集经验参照
+[147] img=False :: 图传播依赖时序种子。共享收款人或账户没有独立异常种子时，传播只能把相邻支付的风险重新分配，不能只靠共享结构生成风险。合法公共供应商和异常资金聚集可能同样高连接，
+[152] img=True :: 
+[153] img=False :: 图6 两种生成机制下MS-TRP的逐种子结果

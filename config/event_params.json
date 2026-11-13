@@ -1,0 +1,14 @@
+{
+  "object_rule": "entity_id 一致 + 时间交叠",
+  "merge_gap": 7.0,
+  "threshold": 0.8414934427356722,
+  "tie_handling": "score > threshold 报警",
+  "version": "v1",
+  "type_agnostic": true,
+  "one_to_one_matching": true,
+  "data_seed": "main",
+  "event_f1": 0.11878374538221086,
+  "tp": 209,
+  "fp": 1983,
+  "fn": 1118
+}

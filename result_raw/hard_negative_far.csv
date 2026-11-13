@@ -1,0 +1,5 @@
+﻿subgroup,definition,n_normal,fp,far_per_1000
+legal_public_payee,公共收款人且跨>=3项目（合法）,11969,19,1.5874
+high_connectivity_payee,收款人历史支付数>=50,17161,26,1.5151
+yearend_batch,12月正常支付,3832,18,4.6973
+approved_extension,多级审批approval_levels=8,11070,13,1.1743

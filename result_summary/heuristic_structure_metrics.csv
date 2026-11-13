@@ -1,0 +1,3 @@
+﻿model,data_seed,window_days,coverage,entity_event_recall,recall_at_far5,paired_effect
+shared_payee_count,main,30,1.0,0.023256,0.08152,-0.395349
+shared_account_concentration,main,30,1.0,0.395349,0.007968,-0.023256

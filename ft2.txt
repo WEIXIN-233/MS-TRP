@@ -1,0 +1,3 @@
+(200000, 6)
+windows: {'none': 170660, '7d': 29340}
+features: {'amount': 85330, 'log_amount': 85330, 'w7_count': 29340}

@@ -1,0 +1,32 @@
+reporting_regime: single_run
+n_reported: 1
+selection_metric: payment_auprc
+data_seeds:
+- 10
+- 20
+- 30
+model_seeds:
+- 1
+- 2
+- 3
+- 4
+- 5
+model_seed_strategy: 每 data_seed 内换 model_seed，model_seed 不计独立场景
+threshold_search_space:
+  gamma:
+  - 30
+  quantile:
+  - 0.01
+  alpha_fpr:
+  - 0.01
+event_merge_gap_grid:
+- 7.0
+tie_policy: score >= threshold 报警；常数分数并列次序固定
+pre_registered_metrics:
+- payment_auprc
+- payment_f1
+- far_1000
+- event_f1
+- vus_pr
+- ndcg_at_k
+frozen_rule: 注入/阈值搜索/事件合并间隔均在验证前冻结，测试集仅一次评价

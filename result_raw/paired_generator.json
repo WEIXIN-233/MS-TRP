@@ -1,0 +1,30 @@
+{
+  "isolation_forest": {
+    "mean_delta": 0.048216,
+    "min_delta": 0.003275,
+    "max_delta": 0.145087,
+    "n_pairs": 6,
+    "n_mstrp_higher": 6
+  },
+  "concat_if": {
+    "mean_delta": 0.062115,
+    "min_delta": 0.020951,
+    "max_delta": 0.154813,
+    "n_pairs": 6,
+    "n_mstrp_higher": 6
+  },
+  "fixed_rules": {
+    "mean_delta": 0.084169,
+    "min_delta": 0.029105,
+    "max_delta": 0.172097,
+    "n_pairs": 6,
+    "n_mstrp_higher": 6
+  },
+  "simple_ppr": {
+    "mean_delta": 0.09265,
+    "min_delta": 0.045372,
+    "max_delta": 0.179124,
+    "n_pairs": 6,
+    "n_mstrp_higher": 6
+  }
+}

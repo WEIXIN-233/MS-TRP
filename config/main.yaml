@@ -1,0 +1,16 @@
+rho: 0.6
+rho_search_grid:
+- 0.2
+- 0.4
+- 0.6
+- 0.8
+tau: 1.0
+gamma: 30.0
+quantile: 0.01
+alpha_fpr: 0.01
+rhythm_sat: 0.35
+conc_sat: 0.5
+w_conc: 0.65
+w_rhythm: 0.7
+ppr_max_iter: 50
+ppr_stop_tol: 1.0e-06

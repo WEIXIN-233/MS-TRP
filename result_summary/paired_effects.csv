@@ -1,0 +1,4 @@
+﻿baseline_model,data_seed,ms_trp_entity_event_recall,baseline_entity_event_recall,paired_effect_entity_recall,ms_trp_recall_at_far5,baseline_recall_at_far5,paired_effect_recall_at_far5
+shared_payee_count,main,0.461538,0.0,0.461538,0.447106,0.137725,0.309381
+shared_account_concentration,main,0.461538,0.435897,0.025641,0.447106,0.009315,0.437791
+simple_ppr,main,0.461538,0.102564,0.358974,0.447106,0.341317,0.105789

@@ -1,0 +1,23 @@
+{
+  "test": "test_relation_weight_effect",
+  "precondition": "固定阶段与邻居（同一 edges/node_stage/ref_date），仅改变 a_r",
+  "expectation": "关系混合矩阵 W 应随 a_r 改变；不变则说明被归一化抵消",
+  "action_paid_to_doubled": {
+    "a_r_from": 0.9,
+    "a_r_to": 1.8,
+    "rel_l1_change": 0.10164398480629924
+  },
+  "action_all_uniform": {
+    "a_r_from": "REL_STRENGTH 默认",
+    "a_r_to": "全 1.0",
+    "rel_l1_change": 0.06113624613179168
+  },
+  "W_properties": {
+    "n_nodes": 148558,
+    "negative_weights": 0,
+    "row_sum_finite": true,
+    "normalization": "D^{-1/2} A D^{-1/2}（对称归一化）"
+  },
+  "pass": true,
+  "note": "a_r 改变 W 显著变化（未被归一化抵消）；zeta_r 未实现 per-type 混合，如实记录。"
+}

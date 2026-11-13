@@ -1,0 +1,39 @@
+{
+  "raw_whitelist": {
+    "amount": "amount_wan",
+    "sum_amount_7d": "w7_count*w7_mean",
+    "sum_amount_30d": "w30_count*w30_mean",
+    "payment_count_7d": "w7_count",
+    "payment_count_30d": "w30_count",
+    "mean_payment_gap_days_to_t": "hist_span_days/max(hist_count,1)",
+    "cumulative_paid_to_t": "hist_sum+amount",
+    "approved_budget_at_t": "indicator.ind_amount_wan",
+    "execution_ratio_to_t": "cumulative_paid/approved_budget",
+    "payment_month": "month",
+    "days_until_month_end": "days_in_month - day",
+    "project_type_train_encoding": "LabelEncoder(project_category)",
+    "expense_category_train_encoding": "LabelEncoder(econ_class_code)"
+  },
+  "raw_excluded": [
+    "Self/Peer位置差",
+    "MAD/IQR归一化偏离",
+    "稳健Z",
+    "tanh打分",
+    "execution_ratio−planned_ratio",
+    "图邻域同质性权重"
+  ],
+  "derived_appended": [
+    "z_amount",
+    "z_freq",
+    "z_trend",
+    "z_rhythm",
+    "s_amt",
+    "s_freq",
+    "s_trend",
+    "s_ts"
+  ],
+  "fit_split": "train",
+  "impute": "mean（仅训练集 fit）",
+  "raw_feature_hash": "a6a13a2cb76c92d6",
+  "derived_feature_hash": "5c62d21533732c8f"
+}

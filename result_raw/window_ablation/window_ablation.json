@@ -1,0 +1,201 @@
+{
+  "完整(amount+7+30+Q)": {
+    "n_scales": 4,
+    "freq_windows": [
+      7,
+      30
+    ],
+    "use_amount": true,
+    "use_quarter": true,
+    "overall_auprc": 0.6006156454020853,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.18954148047467853,
+      "FREQ_BURST": 0.09817441651330205,
+      "PROGRESS_LAG": 0.2784496888831081,
+      "YEAREND_CONC": 0.1592142144542073,
+      "HISTORICAL_SHIFT": 0.02591789581636549,
+      "ENTITY_AGGREGATION": 0.19421878520556488
+    },
+    "event_recall": 0.15599095704596835,
+    "event_f1": 0.2677692122762335
+  },
+  "单尺度(amount)": {
+    "n_scales": 1,
+    "freq_windows": [
+      7,
+      30
+    ],
+    "use_amount": true,
+    "use_quarter": true,
+    "overall_auprc": 0.42677110073519725,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.3541842691247527,
+      "FREQ_BURST": 0.0471451832712613,
+      "PROGRESS_LAG": 0.03511284358147417,
+      "YEAREND_CONC": 0.16534899369545242,
+      "HISTORICAL_SHIFT": 0.03241888317615034,
+      "ENTITY_AGGREGATION": 0.20400167532870356
+    },
+    "event_recall": 0.16428033157498115,
+    "event_f1": 0.2778840025493945
+  },
+  "去7日(amount+30+Q)": {
+    "n_scales": 3,
+    "freq_windows": [
+      30
+    ],
+    "use_amount": true,
+    "use_quarter": true,
+    "overall_auprc": 0.5950900873669062,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.19531961092585426,
+      "FREQ_BURST": 0.08694605634766715,
+      "PROGRESS_LAG": 0.2928323984846096,
+      "YEAREND_CONC": 0.1440500526693461,
+      "HISTORICAL_SHIFT": 0.026088871339077585,
+      "ENTITY_AGGREGATION": 0.1944274182409331
+    },
+    "event_recall": 0.15749811605124342,
+    "event_f1": 0.2702606764250235
+  },
+  "去30日(amount+7+Q)": {
+    "n_scales": 3,
+    "freq_windows": [
+      7
+    ],
+    "use_amount": true,
+    "use_quarter": true,
+    "overall_auprc": 0.6002635336541815,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.19365073730715499,
+      "FREQ_BURST": 0.10032972243927875,
+      "PROGRESS_LAG": 0.28617957705243285,
+      "YEAREND_CONC": 0.15055446358031066,
+      "HISTORICAL_SHIFT": 0.026271927204740593,
+      "ENTITY_AGGREGATION": 0.1944877442341822
+    },
+    "event_recall": 0.15975885455915598,
+    "event_f1": 0.27341911728510526
+  },
+  "去金额(7+30+Q)": {
+    "n_scales": 3,
+    "freq_windows": [
+      7,
+      30
+    ],
+    "use_amount": false,
+    "use_quarter": true,
+    "overall_auprc": 0.5423467911245278,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.08279991469582221,
+      "FREQ_BURST": 0.09447309785194674,
+      "PROGRESS_LAG": 0.3547592271574238,
+      "YEAREND_CONC": 0.2175730972990183,
+      "HISTORICAL_SHIFT": 0.03362176008426034,
+      "ENTITY_AGGREGATION": 0.19399236446698762
+    },
+    "event_recall": 0.07159005275056518,
+    "event_f1": 0.13272942387326078
+  },
+  "去当季(amount+7+30)": {
+    "n_scales": 3,
+    "freq_windows": [
+      7,
+      30
+    ],
+    "use_amount": true,
+    "use_quarter": false,
+    "overall_auprc": 0.6001056050900808,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.20552732590160638,
+      "FREQ_BURST": 0.08751492595104231,
+      "PROGRESS_LAG": 0.22551024559996505,
+      "YEAREND_CONC": 0.17647804696924485,
+      "HISTORICAL_SHIFT": 0.02685907959019068,
+      "ENTITY_AGGREGATION": 0.1952445618066034
+    },
+    "event_recall": 0.17558402411454407,
+    "event_f1": 0.29515235908589205
+  },
+  "仅当季(amount+Q)": {
+    "n_scales": 2,
+    "freq_windows": [],
+    "use_amount": true,
+    "use_quarter": true,
+    "overall_auprc": 0.5837003169145765,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.20855611957072615,
+      "FREQ_BURST": 0.09135929503750323,
+      "PROGRESS_LAG": 0.3175814057517363,
+      "YEAREND_CONC": 0.11994719406918782,
+      "HISTORICAL_SHIFT": 0.026594242512638228,
+      "ENTITY_AGGREGATION": 0.19503168690955217
+    },
+    "event_recall": 0.15825169555388094,
+    "event_f1": 0.2714292054052854
+  },
+  "仅年度(amount+365)": {
+    "n_scales": 2,
+    "freq_windows": [
+      365
+    ],
+    "use_amount": true,
+    "use_quarter": false,
+    "overall_auprc": 0.4265165426185067,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.35396294205070783,
+      "FREQ_BURST": 0.048510056416376034,
+      "PROGRESS_LAG": 0.03481464964965944,
+      "YEAREND_CONC": 0.16484567094466762,
+      "HISTORICAL_SHIFT": 0.032224810387029845,
+      "ENTITY_AGGREGATION": 0.20393401548817836
+    },
+    "event_recall": 0.16352675207234363,
+    "event_f1": 0.27678571428571425
+  },
+  "等维Q/Y(amount+90+365+Q)": {
+    "n_scales": 4,
+    "freq_windows": [
+      90,
+      365
+    ],
+    "use_amount": true,
+    "use_quarter": true,
+    "overall_auprc": 0.5781111033982792,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.2085565137443856,
+      "FREQ_BURST": 0.09059871742214508,
+      "PROGRESS_LAG": 0.3156064928585729,
+      "YEAREND_CONC": 0.116580911820289,
+      "HISTORICAL_SHIFT": 0.02574608122576002,
+      "ENTITY_AGGREGATION": 0.19481055316720117
+    },
+    "event_recall": 0.15900527505651846,
+    "event_f1": 0.2726128489105489
+  },
+  "等维5/60(amount+5+60+Q)": {
+    "n_scales": 4,
+    "freq_windows": [
+      5,
+      60
+    ],
+    "use_amount": true,
+    "use_quarter": true,
+    "overall_auprc": 0.5931518658786326,
+    "per_type_auprc": {
+      "AMOUNT_SPIKE": 0.19415355207473448,
+      "FREQ_BURST": 0.10987316809308426,
+      "PROGRESS_LAG": 0.2873115169508741,
+      "YEAREND_CONC": 0.14200833226927084,
+      "HISTORICAL_SHIFT": 0.025715044925988702,
+      "ENTITY_AGGREGATION": 0.19434273208633038
+    },
+    "event_recall": 0.15825169555388094,
+    "event_f1": 0.2712341231037927
+  },
+  "verdict": {
+    "multi_scale_gain": 0.1738,
+    "window_choice_gain": 0.0075,
+    "conclusion": "增益来自窗口多样性（7/30 选择本身有效），非仅特征数增加"
+  }
+}

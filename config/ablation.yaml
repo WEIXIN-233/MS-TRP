@@ -1,0 +1,6 @@
+single_scale: 仅30日尺度（同一特征定义）
+fixed_graph_weight: 去掉阶段差异
+no_graph: Temporal-only
+fixed_fusion: 0.5/0.5 门控对照
+self_only_peer_only: 分层基线可解释
+no_ppr_one_hop: 多跳是否必要

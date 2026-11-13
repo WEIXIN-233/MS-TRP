@@ -1,0 +1,4 @@
+﻿model,data_seed,model_seed,split,n_test,prevalence,payment_auprc,payment_f1,precision,recall,far_1000,event_f1,f1_raw,recall_at_far5,recall_at_far10,reporting_regime,n_reported,status
+FoMo-0D,2026,1,test,23465,0.139058,0.279324,0.033195,0.504505,0.017162,2.7225,0.062436,0.033195,0.15875,0.264481,single_run,1,completed
+DRL,2026,1,test,23465,0.139058,0.26995,0.241389,0.138863,0.922464,923.9679,0.032964,0.241389,0.190929,0.221882,single_run,1,completed
+TCCM,2026,1,test,23465,0.139058,0.28797,0.244163,0.139058,1.0,1000.0,0.031982,0.244163,0.196445,0.241802,single_run,1,completed

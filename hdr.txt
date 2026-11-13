@@ -1,0 +1,7 @@
+result_raw/baseline_table.csv :: sample_id,mu_self,mu_peer,sigma_self,sigma_peer,lambda,fallback_level
+
+result_raw/temporal_score.csv :: sample_id,s_ts,top_feature,sample_type
+
+result_raw/event_predictions.csv :: pred_event_id,entity_key,start,end,n_alerts,apply_ids
+
+result_raw/run_main/predictions.csv :: apply_id,apply_date,amount_wan,is_large,is_december,unit_type,project_category,stage,group,is_anomaly,anomaly_types,z_amount,hist_count,s_amt,s_freq,s_trend,z_rhythm,z_rhythm_ind,z_conc,s_progress,s_rhythm,s_conc,s_rhythm_ch,s_ts,s_struct,s_mismatch,s_entity_freq,s_diffuse,s_g,r_ts,r_g,g_ts,g_g,s_gate,s_final,split

@@ -1,0 +1,10 @@
+﻿scores_from,threshold_from,thr,entity_caught,entity_recall
++Rule,+Rule,0.6838,27,0.6279
++Rule,+Rule+PPR,0.8432,17,0.3953
++Rule,完整模型,0.8415,17,0.3953
++Rule+PPR,+Rule,0.6838,30,0.6977
++Rule+PPR,+Rule+PPR,0.8432,17,0.3953
++Rule+PPR,完整模型,0.8415,17,0.3953
+完整模型,+Rule,0.6838,30,0.6977
+完整模型,+Rule+PPR,0.8432,17,0.3953
+完整模型,完整模型,0.8415,18,0.4186
