@@ -36,7 +36,10 @@ Python 3.10，依赖见 `requirements.txt`。全流程可在 CPU 上运行；仅
 
 ```bash
 pip install -r requirements.txt
+git submodule update --init --recursive   # 拉取 FoMo-0D 上游代码（对比基线）
 ```
+
+论文与配图的 PDF 文件不入库（`.gitignore` 中排除 `*.pdf`），仅在本地生成与保存。
 
 ## 复现
 
